@@ -1,11 +1,13 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <iostream>
+#include <iomanip>
 #include <vector>
 
 namespace Matrix {
 
-    using TSize = std::tuple<float, float>;
+    using TSize = std::tuple<int, int>;
 
     class TMatrix {
     public:
