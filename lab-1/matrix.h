@@ -75,11 +75,12 @@ namespace Matrix {
     }
 
     void Read(Matrix::TMatrix& m) {
-        int n = std::get<0>(m.GetSize());
+        int w = std::get<0>(m.GetSize());
+        int h = std::get<1>(m.GetSize());
         float element;
 
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
+        for (int i = 0; i < w; ++i) {
+            for (int j = 0; j < h; ++j) {
                 std::cin >> element;
                 m.Set(i, j, element);
             }
