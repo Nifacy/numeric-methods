@@ -18,7 +18,7 @@ namespace Matrix {
 
         TMatrix(int n, int m)
             : _data(n * m, 0.0),
-            _size{n, m}
+              _size{n, m}
         { }
 
         static TMatrix Eye(int n) {
@@ -32,11 +32,11 @@ namespace Matrix {
         }
 
         float Get(int i, int j) const {
-            return this->_data[i * std::get<0>(this->_size) + j];
+            return this->_data[i * std::get<1>(this->_size) + j];
         }
 
         void Set(int i, int j, float value) {
-            this->_data[i * std::get<0>(this->_size) + j] = value;
+            this->_data[i * std::get<1>(this->_size) + j] = value;
         }
 
         void Swap(int i, int j) {
