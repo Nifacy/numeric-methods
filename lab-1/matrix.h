@@ -65,7 +65,79 @@ namespace Matrix {
         TSize _size;
     };
 
-    void Print(const Matrix::TMatrix& m) {
+    /* Operations */
+
+    void Add(const TMatrix& a, const TMatrix& b, TMatrix& res) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(a.GetSize());
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                res.Set(i, j, a.Get(i, j) + b.Get(i, j));
+            }
+        }
+    }
+
+    TMatrix Add(const TMatrix& a, const TMatrix& b) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(a.GetSize());
+
+        TMatrix res(n, m);
+        Add(a, b, res);
+        return res;
+    }
+
+    void Mult(const TMatrix& a, const TMatrix& b, TMatrix& res) {
+        int n = std::get<0>(a.GetSize());
+        int p = std::get<1>(a.GetSize());
+        int m = std::get<1>(b.GetSize());
+        float acc;
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                acc = 0.0;
+
+                for (int t = 0; t < p; ++t) {
+                    acc += a.Get(i, t) * b.Get(t, j);
+                }
+
+                res.Set(i, j, acc);
+            }
+        }
+    }
+
+    TMatrix Mult(const TMatrix& a, const TMatrix& b) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(b.GetSize());
+        
+        TMatrix res(n, m);
+        Mult(a, b, res);
+        return res;
+    }
+
+    void Mult(const TMatrix& a, float k, TMatrix& res) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(a.GetSize());
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                res.Set(i, j, a.Get(i, j) * k);
+            }
+        }
+    }
+
+    TMatrix Mult(const TMatrix& a, float k) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(a.GetSize());
+
+        TMatrix res(n, m);
+        Mult(a, k, res);
+        return res;
+    }
+
+    /* IO Functions */
+
+    void Print(const TMatrix& m) {
         int a = std::get<0>(m.GetSize());
         int b = std::get<1>(m.GetSize());
         std::cout << std::fixed;
@@ -85,7 +157,7 @@ namespace Matrix {
         }
     }
 
-    void Read(Matrix::TMatrix& m) {
+    void Read(TMatrix& m) {
         int w = std::get<0>(m.GetSize());
         int h = std::get<1>(m.GetSize());
         float element;
