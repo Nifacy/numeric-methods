@@ -11,6 +11,11 @@ namespace Matrix {
 
     class TMatrix {
     public:
+        TMatrix(const TMatrix& m)
+            : _data(m._data),
+              _size(m._size)
+        { }
+
         TMatrix(int n, int m)
             : _data(n * m, 0.0),
             _size{n, m}
@@ -47,6 +52,12 @@ namespace Matrix {
 
         TSize GetSize() const {
             return this->_size;
+        }
+
+        TMatrix& operator=(const TMatrix& other) {
+            this->_data = other._data;
+            this->_size = other._size;
+            return *this;
         }
 
     private:
