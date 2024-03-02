@@ -21,6 +21,16 @@ namespace Matrix {
               _size{n, m}
         { }
 
+        TMatrix(const std::vector<std::vector<int>>& data)
+            : TMatrix(data.size(), data[0].size())
+        {
+            for (int i = 0; i < data.size(); ++i) {
+                for (int j = 0; j < data[0].size(); ++j) {
+                    Set(i, j, data[i][j]);
+                }
+            }
+        }
+
         static TMatrix Eye(int n) {
             TMatrix matrix(n, n);
 
