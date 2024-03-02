@@ -25,19 +25,49 @@ float Norm(const Matrix::TMatrix& m) {
 
 void JakobiMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
     int n = std::get<0>(A.GetSize());
-    float diag_alpha;
+    float diagAlpha;
 
     for (int i = 0; i < n; ++i) {
-        diag_alpha = A.Get(i, i);
-        beta.Set(i, 0, b.Get(i, 0) / diag_alpha);
+        diagAlpha = A.Get(i, i);
+        beta.Set(i, 0, b.Get(i, 0) / diagAlpha);
 
         for (int j = 0; j < n; ++j) {
             alpha.Set(
                 i, j,
-                (i == j) ? 0.0 : - A.Get(i, j) / diag_alpha
+                (i == j) ? 0.0 : - A.Get(i, j) / diagAlpha
             );
         }
     }
+}
+
+
+void inverseMatrix(const Matrix::TMatrix& m, Matrix::TMatrix& result) {
+    int n = std::get<0>(m.GetSize());
+    Matrix::TMatrix l(n, n), u(n, n);
+
+    LUDecompose(m, l, u);
+    InverseMatrix(l, u, result);
+}
+
+
+void SeidelMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
+    int n = std::get<0>(A.GetSize());
+    Matrix::TMatrix B(n, n), C(n, n), T(n, n);
+    Matrix::TMatrix E = Matrix::TMatrix::Eye(n);
+
+    JakobiMethod(A, b, alpha, beta);
+
+    // split alpha matrix B, C: alpha = B + C
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (j >= i) C.Set(i, j, alpha.Get(i, j));
+            else B.Set(i, j, alpha.Get(i, j));
+        }
+    }
+
+    inverseMatrix(Matrix::Add(E, Matrix::Mult(B, -1.0)), T);
+    alpha = Matrix::Mult(T, C);
+    beta = Matrix::Mult(T, beta);
 }
 
 
