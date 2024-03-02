@@ -57,7 +57,7 @@ int main() {
     std::cout << "Enter number of equations: ";
     int n = ReadNumberOfEquations();
 
-    Matrix::TMatrix A(n, n), b(n, 1), alpha(n, n), beta(n, 1), x(n, 1);
+    Matrix::TMatrix A(n, n), b(n, 1), alpha(n, n), beta(n, 1);
 
     std::cout << "Enter matrix A:" << std::endl;
     Matrix::Read(A);
@@ -71,10 +71,11 @@ int main() {
     float eps = ReadAccuracy();
 
     method(A, b, alpha, beta);
-    x = IterativeMethod(alpha, beta, eps);
+    IterativeMethodResult result = IterativeMethod(alpha, beta, eps);
 
     std::cout << "Result:" << std::endl;
-    Matrix::Print(x);
+    Matrix::Print(result.result);
+    std::cout << "Iterations: " << result.iterations << std::endl;
 
     return 0;
 }

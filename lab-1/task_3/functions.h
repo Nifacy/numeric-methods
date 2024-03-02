@@ -7,6 +7,12 @@
 #include <cmath>
 
 
+struct IterativeMethodResult {
+    Matrix::TMatrix result;
+    int iterations;
+};
+
+
 float Norm(const Matrix::TMatrix& m) {
     float matrixSum = 0.0;
     float element;
@@ -78,7 +84,7 @@ float Epsilon(float alphaNorm, const Matrix::TMatrix& x1, const Matrix::TMatrix&
 }
 
 
-Matrix::TMatrix IterativeMethod(const Matrix::TMatrix& alpha, const Matrix::TMatrix& beta, float eps) {
+IterativeMethodResult IterativeMethod(const Matrix::TMatrix& alpha, const Matrix::TMatrix& beta, float eps) {
     int n = std::get<0>(alpha.GetSize());
     float alphaNorm = Norm(alpha);
     int iterations = 0;
@@ -87,16 +93,21 @@ Matrix::TMatrix IterativeMethod(const Matrix::TMatrix& alpha, const Matrix::TMat
     Matrix::TMatrix x2 = beta;
 
     while (true) {
+        iterations++;
         Matrix::Mult(alpha, x, x2);
         Matrix::Add(x2, beta, x2);
 
         if (Epsilon(alphaNorm, x, x2) <= eps) {
-            return x2;
+            break;
         }
 
         x = x2;
-        iterations++;
     }
+
+    return {
+        .result=x2,
+        .iterations=iterations
+    };
 }
 
 
