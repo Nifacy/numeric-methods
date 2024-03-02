@@ -1,9 +1,10 @@
-#include "./matrix.h"
-#include <iostream>
+#ifndef _TASK_3_FUNCTIONS_
+#define _TASK_3_FUNCTIONS_
+
+
+#include "../matrix.h"
+#include "../task_1/functions.h"
 #include <cmath>
-
-
-using namespace std;
 
 
 float Norm(const Matrix::TMatrix& m) {
@@ -18,11 +19,11 @@ float Norm(const Matrix::TMatrix& m) {
         }
     }
 
-    return sqrt(matrixSum);
+    return std::sqrt(matrixSum);
 }
 
 
-void Jakobi(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
+void JakobiMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
     int n = std::get<0>(A.GetSize());
     float diag_alpha;
 
@@ -69,29 +70,4 @@ Matrix::TMatrix IterativeMethod(const Matrix::TMatrix& alpha, const Matrix::TMat
 }
 
 
-int main() {
-    Matrix::TMatrix m(3, 3);
-    m.Set(0, 0, 10.0);
-    m.Set(0, 1, 1.0);
-    m.Set(0, 2, 1.0);
-    m.Set(1, 0, 2.0);
-    m.Set(1, 1, 10.0);
-    m.Set(1, 2, 1.0);
-    m.Set(2, 0, 2.0);
-    m.Set(2, 1, 2.0);
-    m.Set(2, 2, 10.0);
-
-    Matrix::TMatrix b(3, 1);
-    b.Set(0, 0, 12.0);
-    b.Set(1, 0, 13.0);
-    b.Set(2, 0, 14.0);
-
-    Matrix::TMatrix alpha(3, 3);
-    Matrix::TMatrix beta(3, 1);
-    Matrix::TMatrix x(3, 1);
-
-    Jakobi(m, b, alpha, beta);
-
-    Matrix::Print(IterativeMethod(alpha, beta, 0.01));
-    return 0;
-}
+#endif // _TASK_3_FUNCTIONS_
