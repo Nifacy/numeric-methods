@@ -2,79 +2,93 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#include "matrix.h"
 
 
-void ReadCoefficients(int step, int n, std::vector<float>& coefs) {
-    if (step == 0) {
-        coefs[0] = 0.0;
-        std::cin >> coefs[1] >> coefs[2] >> coefs[3];
-    }
-
-    else if (step == n - 1) {
-        coefs[2] = 0.0;
-        std::cin >> coefs[0] >> coefs[1] >> coefs[3];
-    }
-
-    else {
-        std::cin >> coefs[0] >> coefs[1] >> coefs[2] >> coefs[3];
-    }
-}
-
-
-void CheckCoefficients(const std::vector<float>& coefs) {
-    bool allZero = true;
-
-    for (int i = 0; i < 3; ++i) {
-        allZero = allZero && (coefs[i] == 0.0);
-    }
-
-    if (allZero && coefs[3] != 0.0) {
-        throw std::runtime_error("Can't find solution of system");
-    }
-}
-
-
-std::vector<std::vector<float>> ReadRunCoefficients(int n) {
-    std::vector<float> coefs(4, 0.0);
-    std::vector<std::vector<float>> runCoefs(n, std::vector<float>(2, 0.0));
+void ReadTridiagonalMatrix(Matrix::TMatrix& a) {
+    int n = std::get<0>(a.GetSize());
+    float value;
 
     for (int i = 0; i < n; ++i) {
-        ReadCoefficients(i, n, coefs);
-        CheckCoefficients(coefs);
-
         if (i == 0) {
-            if (coefs[1] == 0.0) {
+            a.Set(i, 0, 0.0);
+
+            for (int j = 1; j < 3; ++j) {
+                std::cin >> value;
+                a.Set(i, j, value);
+            }
+        }
+        
+        else if (i == n - 1) {
+            a.Set(i, 2, 0.0);
+
+            for (int j = 0; j < 2; ++j) {
+                std::cin >> value;
+                a.Set(i, j, value);
+            }
+        }
+
+        else {
+            for (int j = 0; j < 3; ++j) {
+                std::cin >> value;
+                a.Set(i, j, value);
+            }
+        }
+    }
+}
+
+
+void CalculateRunCoefficients(const Matrix::TMatrix& a, const Matrix::TMatrix& b, Matrix::TMatrix& result) {
+    int n = std::get<0>(a.GetSize());
+
+    for (int i = 0; i < n; ++i) {
+        if (i == 0) {
+            if (b.Get(i, 0) == 0.0) {
                 throw std::runtime_error("Can't find solution of system");
             }
 
-            runCoefs[i][0] = - coefs[2] / coefs[1];
-            runCoefs[i][1] = coefs[3] / coefs[1];
-        } else {
-            float t = coefs[1] + coefs[0] * runCoefs[i - 1][0];
+            result.Set(i, 0, - a.Get(i, 2) / a.Get(i, 1));
+            result.Set(i, 1, b.Get(i, 0) / a.Get(i, 1));
+        }
+        
+        else {
+            float t = a.Get(i, 1) + a.Get(i, 0) * result.Get(i - 1, 0);
 
             if (t == 0.0) {
                 throw std::runtime_error("Can't find solution of system");
             }
 
-            runCoefs[i][0] = - coefs[2] / t;
-            runCoefs[i][1] = (coefs[3] - coefs[0] * runCoefs[i - 1][1]) / t;
+            result.Set(i, 0, - a.Get(i, 2) / t);
+            result.Set(i, 1, (b.Get(i, 0) - a.Get(i, 0) * result.Get(i - 1, 1)) / t);
         }
     }
-
-    return runCoefs;
 }
 
 
-std::vector<float> Solve(const std::vector<std::vector<float>>& runCoefs) {
-    int n = runCoefs.size();
-    std::vector<float> x(n, 0.0);
+void CheckCoefficients(const Matrix::TMatrix& a, const Matrix::TMatrix& b) {
+    int n = std::get<0>(a.GetSize());
 
-    x[n - 1] = runCoefs[n - 1][1];
-    for (int i = n - 2; i >= 0; --i) {
-        x[i] = runCoefs[i][0] * x[i + 1] + runCoefs[i][1];
+    for (int i = 0; i < n; ++i) {
+        bool allZero = true;
+
+        for (int j = 0; j < 3; ++i) {
+            allZero = allZero && (a.Get(i, j) == 0.0);
+        }
+
+        if (allZero && b.Get(i, 0) != 0.0) {
+            throw std::runtime_error("Can't find solution of system");
+        }
     }
+}
 
-    return x;
+
+void SolveUsingRunCoefficients(const Matrix::TMatrix& runCoefs, Matrix::TMatrix& result) {
+    int n = std::get<0>(runCoefs.GetSize());
+
+    result.Set(n - 1, 0, runCoefs.Get(n - 1, 1));
+    for (int i = n - 2; i >= 0; --i) {
+        result.Set(i, 0, runCoefs.Get(i, 0) * result.Get(i + 1, 0) + runCoefs.Get(i, 1));
+    }
 }
 
 
@@ -90,24 +104,27 @@ int ReadNumberOfEquations() {
 }
 
 
-void PrintVector(const std::vector<float>& x) {
-    std::cout << "[ ";
-    for (const float el: x) {
-        std::cout << std::setprecision(3) << el << " ";
-    }
-    std::cout << "]" << std::endl;
-}
-
-
 int main() {
     try {
+        std::cout << "Enter number of equations:" << std::endl;
         int n = ReadNumberOfEquations();
-        std::vector<std::vector<float>> runCoefs = ReadRunCoefficients(n);
-        std::vector<float> x = Solve(runCoefs);
 
-        std::cout << "x = ";
-        PrintVector(x);
-        std::cout << std::endl;
+        Matrix::TMatrix a(n, 3);
+        Matrix::TMatrix b(n, 1);
+        Matrix::TMatrix runCoefs(n, 2);
+        Matrix::TMatrix x(n, 1);
+
+        std::cout << "Enter tridiagonal matrix's coefficients (matrix A):" << std::endl;
+        ReadTridiagonalMatrix(a);
+
+        std::cout << "Enter free coefficients (vector b):" << std::endl;
+        Matrix::Read(b);
+
+        CalculateRunCoefficients(a, b, runCoefs);
+        SolveUsingRunCoefficients(runCoefs, x);
+
+        std::cout << "Result:" << std::endl;
+        Matrix::Print(x);
     
     } catch(const std::exception& err) {
         std::cout << "error : " << err.what() << std::endl;
