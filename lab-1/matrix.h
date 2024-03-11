@@ -21,7 +21,7 @@ namespace Matrix {
               _size{n, m}
         { }
 
-        TMatrix(const std::vector<std::vector<int>>& data)
+        TMatrix(const std::vector<std::vector<float>>& data)
             : TMatrix(data.size(), data[0].size())
         {
             for (int i = 0; i < data.size(); ++i) {
