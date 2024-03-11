@@ -145,6 +145,21 @@ namespace Matrix {
         return res;
     }
 
+    TMatrix Transpose(const TMatrix& a) {
+        int n = std::get<0>(a.GetSize());
+        int m = std::get<1>(a.GetSize());
+
+        TMatrix res(m, n);
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                res.Set(j, i, a.Get(i, j));
+            }
+        }
+
+        return res;
+    }
+
     /* IO Functions */
 
     void Print(const TMatrix& m) {
