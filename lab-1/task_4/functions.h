@@ -1,6 +1,17 @@
+#ifndef _TASK_4_FUNCTIONS_
+#define _TASK_4_FUNCTIONS_
+
+
 #include "../matrix.h"
+#include <vector>
 #include <cmath>
-#include <iostream>
+
+
+struct EigenTaskResult {
+    int iterations;
+    std::vector<float> eigenValues;
+    std::vector<Matrix::TMatrix> eigenVectors;
+};
 
 
 std::pair<int, int> FindMaxNotDiagonalElement(const Matrix::TMatrix& A) {
@@ -64,59 +75,35 @@ float t(const Matrix::TMatrix& A) {
 }
 
 
-int main(void) {
-    int n = 3;
-    float eps = 0.0001;
-    Matrix::TMatrix A({
-        {4.0, 2.0, 1.0},
-        {2.0, 5.0, 3.0},
-        {1.0, 3.0, 6.0}
-    });
-
+EigenTaskResult SolveEigenTask(const Matrix::TMatrix& M, float eps) {
+    Matrix::TMatrix A(M);
+    int n = std::get<0>(A.GetSize());
     Matrix::TMatrix U = Matrix::TMatrix::Eye(n);
-    int k = 0;
+    EigenTaskResult result;
 
     while (t(A) > eps) {
-        std::cout << "k = " << k << std::endl;
-        
-        std::cout << "A(" << k << ")" << std::endl;
-        Matrix::Print(A);
-        std::cout << std::endl;
-
-        std::pair<int, int> x = FindMaxNotDiagonalElement(A);
-        std::cout << "a(" << x.first << ", " << x.second << ") = " << A.Get(x.first, x.second) << std::endl;
-        
-        float phi = GetRotationAngle(A, x.first, x.second);
-        std::cout << "phi(" << k << ") = " << phi << std::endl;
-        
-        Matrix::TMatrix u = GetRotationMatrix(3, x.first, x.second, GetRotationAngle(A, x.first, x.second));
-        std::cout << "U(" << k << "):" << std::endl;
-        Matrix::Print(u);
-        
+        std::pair<int, int> pos = FindMaxNotDiagonalElement(A);
+        float phi = GetRotationAngle(A, pos.first, pos.second);
+        Matrix::TMatrix u = GetRotationMatrix(n, pos.first, pos.second, phi);
         A = GetNextA(A, u);
         U = Matrix::Mult(U, u);
-        k++;
+        result.iterations++;
     }
 
-    std::cout << "--- RESULT ---" << std::endl;
-    std::cout << "iterations: " << k << std::endl;
-    std::cout << "eigenvalues: ";
-
     for (int i = 0; i < n; ++i) {
-        std::cout << std::setprecision(3) << A.Get(i, i) << " ";
+        result.eigenValues.push_back(A.Get(i, i));
     }
 
-    std::cout << std::endl;
-
-    std::cout << "eigenvectors:" << std::endl;
-
     for (int i = 0; i < n; ++i) {
-        std::cout << "x" << i << ": ";
+        Matrix::TMatrix v(n, 1);
         for (int j = 0; j < n; ++j) {
-            std::cout << std::setprecision(3) << U.Get(j, i) << " ";
+            v.Set(j, 0, U.Get(j, i));
         }
-        std::cout << std::endl;
+        result.eigenVectors.push_back(v);
     }
 
-    return 0;
+    return result;
 }
+
+
+#endif // _TASK_4_FUNCTIONS_
