@@ -2,6 +2,8 @@
 #include "functions.h"
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <cstring>
 #include <stdexcept>
 
 
@@ -40,6 +42,19 @@ float ReadEpsilon() {
 }
 
 
+std::tuple<float, float, float> ReadEpsilonRange() {
+    float a, b, s;
+    std::cout << "Enter epsilon range: ";
+    std::cin >> a >> b >> s;
+
+    if (a < 0.0) throw std::runtime_error("range start value can't be negative");
+    if (b < 0.0) throw std::runtime_error("range end value can't be negative");
+    if (s < 0.0) throw std::runtime_error("range step value can't be negative");
+
+    return {a, b, s};
+}
+
+
 void PrintResult(const EigenTaskResult& result) {
     std::cout << "iterations: " << result.iterations << std::endl;
 
@@ -57,11 +72,50 @@ void PrintResult(const EigenTaskResult& result) {
 }
 
 
-int main(void) {
-    Matrix::TMatrix A = ReadMatrix();
-    float eps = ReadEpsilon();
-    EigenTaskResult result = SolveEigenTask(A, eps);
-    PrintResult(result);
+std::string Justify(const std::string& s, int length) {
+    return s + std::string(std::max(0, int(length - s.length())), ' ');
+}
+
+
+void PrintStatisticTableHead() {
+    std::cout << Justify("precision", 15) << " | " << Justify("iterations", 15) << std::endl;
+}
+
+
+void PrintStatisticEntry(float eps, int iterations) {
+    std::cout << Justify(std::to_string(eps), 15) << " | " << Justify(std::to_string(iterations), 15) << std::endl;
+}
+
+
+bool IsInStatsMode(int argc, char* argv[]) {
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "-s") == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+int main(int argc, char* argv[]) {
+    if (IsInStatsMode(argc, argv)) {
+        std::tuple<float, float, float> range = ReadEpsilonRange();
+        Matrix::TMatrix A = ReadMatrix();
+        EigenTaskResult result;
+        
+        PrintStatisticTableHead();
+        for (float eps = std::get<0>(range); eps <= std::get<1>(range); eps += std::get<2>(range)) {
+            result = SolveEigenTask(A, eps);
+            PrintStatisticEntry(eps, result.iterations);
+        }
+    }
+
+    else {
+        float eps = ReadEpsilon();
+        Matrix::TMatrix A = ReadMatrix();
+        EigenTaskResult result = SolveEigenTask(A, eps);
+        PrintResult(result);
+    }
 
     return 0;
 }
