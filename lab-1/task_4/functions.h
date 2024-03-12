@@ -80,6 +80,7 @@ EigenTaskResult SolveEigenTask(const Matrix::TMatrix& M, float eps) {
     int n = std::get<0>(A.GetSize());
     Matrix::TMatrix U = Matrix::TMatrix::Eye(n);
     EigenTaskResult result;
+    result.iterations = 0;
 
     while (t(A) > eps) {
         std::pair<int, int> pos = FindMaxNotDiagonalElement(A);
