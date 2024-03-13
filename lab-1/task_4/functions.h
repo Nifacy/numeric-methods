@@ -33,7 +33,7 @@ std::pair<int, int> FindMaxNotDiagonalElement(const Matrix::TMatrix& A) {
 
 float GetRotationAngle(const Matrix::TMatrix& A, int i, int j) {
     float aii = A.Get(i, i), ajj = A.Get(j, j), aij = A.Get(i, j);
-    if (aii == ajj) return M_PI / 2.0;
+    if (aii == ajj) return M_PI / 4.0;
     return 0.5 * atan((2.0 * aij) / (aii - ajj));
 }
 
