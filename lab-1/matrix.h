@@ -176,7 +176,7 @@ namespace Matrix {
                     elem *= -1.0;
                 }
 
-                std::cout << std::setprecision(3) << sign << elem << " ";
+                std::cout << std::setprecision(6) << sign << elem << " ";
             }
             std::cout << "\n";
         }
