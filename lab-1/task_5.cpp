@@ -61,8 +61,8 @@ std::pair<std::complex<float>, std::complex<float>> FindComplexEigeValues(const 
     std::complex<float> dSqrt = std::sqrt(std::complex<float>(d, 0));
 
     return {
-        std::complex<float>(0.5, 0.0) * (std::complex<float>(b, 0.0) - dSqrt),
-        std::complex<float>(0.5, 0.0) * (std::complex<float>(b, 0.0) + dSqrt)
+        std::complex<float>(0.5, 0.0) * (std::complex<float>(-b, 0.0) + dSqrt),
+        std::complex<float>(0.5, 0.0) * (std::complex<float>(-b, 0.0) - dSqrt)
     };
 }
 
@@ -80,7 +80,7 @@ float t(const Matrix::TMatrix& A, int i, int j) {
 }
 
 
-float tComplex(const Matrix::TMatrix& Ai, int i) {
+float tComplex(const Matrix::TMatrix& Ai, int i, float eps) {
     int n = std::get<0>(Ai.GetSize());
     Matrix::TMatrix Q(n, n), R(n, n);
 
@@ -90,7 +90,17 @@ float tComplex(const Matrix::TMatrix& Ai, int i) {
     auto lambda1 = FindComplexEigeValues(Ai, i);
     auto lambda2 = FindComplexEigeValues(ANext, i);
 
-    return std::abs(lambda2.first - lambda1.first);
+    return std::abs(lambda2.first - lambda1.first) <= eps && std::abs(lambda2.second - lambda1.second) <= eps;
+}
+
+
+bool IsEigenReal(const std::vector<float>& history) {
+    for (int i = std::max(1, int(history.size()) - 5); i < history.size(); ++i) {
+        if (history[i] >= history[i - 1]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -99,6 +109,7 @@ std::vector<std::complex<float>> GetEigenValues(const Matrix::TMatrix& A, float 
     Matrix::TMatrix Q(n, n), R(n, n);
     Matrix::TMatrix Ai = A;
     std::vector<std::complex<float>> values;
+    std::vector<std::vector<float>> history(n);
     int i = 0;
 
     while (i < n) {
@@ -106,14 +117,23 @@ std::vector<std::complex<float>> GetEigenValues(const Matrix::TMatrix& A, float 
         std::cout << "A:" << std::endl;
         Matrix::Print(Ai);
 
-        if (t(Ai, i, i + 1) <= eps) {
+        std::cout << "history:" << std::endl;
+        for (auto row : history) {
+            std::cout << "[";
+            for (auto el : row) {
+                std::cout << el << " ";
+            }
+            std::cout << "]" << std::endl;
+        }
+
+        if ((IsEigenReal(history[i])) && t(Ai, i, i + 1) <= eps) {
             values.push_back(Ai.Get(i, i));
             std::cout << "value: " << Ai.Get(i, i) << std::endl;
             i++;
             continue;
         }
 
-        if ((t(Ai, i, i + 2) <= eps) && (tComplex(Ai, i) <= eps)) {
+        if ((!IsEigenReal(history[i])) && (t(Ai, i, i + 2) <= eps) && tComplex(Ai, i, eps)) {
             auto p = FindComplexEigeValues(Ai, i);
             values.push_back(p.first);
             values.push_back(p.second);
@@ -125,6 +145,10 @@ std::vector<std::complex<float>> GetEigenValues(const Matrix::TMatrix& A, float 
 
         QRDecompose(Ai, Q, R);
         Ai = Matrix::Mult(R, Q);
+
+        for (int t = 0; t < n - 1; ++t) {
+            history[t].push_back(std::abs(Ai.Get(t + 1, t)));
+        }
     }
 
     Matrix::Print(Ai);
@@ -133,17 +157,17 @@ std::vector<std::complex<float>> GetEigenValues(const Matrix::TMatrix& A, float 
 
 
 int main(void) {
-    // Matrix::TMatrix A ({
-    //     {1.0, 3.0, 1.0},
-    //     {1.0, 1.0, 4.0},
-    //     {4.0, 3.0, 1.0}
-    // });
-
     Matrix::TMatrix A ({
-        { -1.0, 2.0, 9.0},
-        { 9.0, 3.0, 4.0 },
-        {8 ,-4, -6}
+        {1.0, 3.0, 1.0},
+        {1.0, 1.0, 4.0},
+        {4.0, 3.0, 1.0}
     });
+
+    // Matrix::TMatrix A ({
+    //     { -1.0, 2.0, 9.0},
+    //     { 9.0, 3.0, 4.0 },
+    //     {8 ,-4, -6}
+    // });
 
     GetEigenValues(A, 0.01);
     // QRDecompose(A, Q, R);
