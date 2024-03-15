@@ -98,23 +98,28 @@ bool IsInStatsMode(int argc, char* argv[]) {
 
 
 int main(int argc, char* argv[]) {
-    if (IsInStatsMode(argc, argv)) {
-        std::tuple<float, float, float> range = ReadEpsilonRange();
-        Matrix::TMatrix A = ReadMatrix();
-        EigenTaskResult result;
-        
-        PrintStatisticTableHead();
-        for (float eps = std::get<0>(range); eps <= std::get<1>(range); eps += std::get<2>(range)) {
-            result = SolveEigenTask(A, eps);
-            PrintStatisticEntry(eps, result.iterations);
+    try {
+        if (IsInStatsMode(argc, argv)) {
+            std::tuple<float, float, float> range = ReadEpsilonRange();
+            Matrix::TMatrix A = ReadMatrix();
+            EigenTaskResult result;
+            
+            PrintStatisticTableHead();
+            for (float eps = std::get<0>(range); eps <= std::get<1>(range); eps += std::get<2>(range)) {
+                result = SolveEigenTask(A, eps);
+                PrintStatisticEntry(eps, result.iterations);
+            }
         }
-    }
 
-    else {
-        float eps = ReadEpsilon();
-        Matrix::TMatrix A = ReadMatrix();
-        EigenTaskResult result = SolveEigenTask(A, eps);
-        PrintResult(result);
+        else {
+            float eps = ReadEpsilon();
+            Matrix::TMatrix A = ReadMatrix();
+            EigenTaskResult result = SolveEigenTask(A, eps);
+            PrintResult(result);
+        }
+    } catch (const std::exception& err) {
+        std::cout << "error : " << err.what() << std::endl;
+        exit(1);
     }
 
     return 0;
