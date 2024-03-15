@@ -54,28 +54,33 @@ int ReadAccuracy() {
 
 
 int main() {
-    std::cout << "Enter number of equations: ";
-    int n = ReadNumberOfEquations();
+    try {
+        std::cout << "Enter number of equations: ";
+        int n = ReadNumberOfEquations();
 
-    Matrix::TMatrix A(n, n), b(n, 1), alpha(n, n), beta(n, 1);
+        Matrix::TMatrix A(n, n), b(n, 1), alpha(n, n), beta(n, 1);
 
-    std::cout << "Enter matrix A:" << std::endl;
-    Matrix::Read(A);
+        std::cout << "Enter matrix A:" << std::endl;
+        Matrix::Read(A);
 
-    std::cout << "Enter matrix b:" << std::endl;
-    Matrix::Read(b);
+        std::cout << "Enter matrix b:" << std::endl;
+        Matrix::Read(b);
 
-    IterationMatrixCalculator method = ReadIterationMethod();
+        IterationMatrixCalculator method = ReadIterationMethod();
 
-    std::cout << "Enter accuracy: ";
-    float eps = ReadAccuracy();
+        std::cout << "Enter accuracy: ";
+        float eps = ReadAccuracy();
 
-    method(A, b, alpha, beta);
-    IterativeMethodResult result = IterativeMethod(alpha, beta, eps);
+        method(A, b, alpha, beta);
+        IterativeMethodResult result = IterativeMethod(alpha, beta, eps);
 
-    std::cout << "Result:" << std::endl;
-    Matrix::Print(result.result);
-    std::cout << "Iterations: " << result.iterations << std::endl;
+        std::cout << "Result:" << std::endl;
+        Matrix::Print(result.result);
+        std::cout << "Iterations: " << result.iterations << std::endl;
+    } catch (const std::exception& err) {
+        std::cout << "error : " << err.what() << std::endl;
+        exit(1);
+    }
 
     return 0;
 }
