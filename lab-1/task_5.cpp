@@ -4,22 +4,35 @@
 #include <complex>
 
 
-void HouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
+using ComplexPair = std::pair<std::complex<float>, std::complex<float>>;
+using EigenValues = std::vector<std::complex<float>>;
+using ChangeHistory = std::vector<float>;
+
+
+const int HISTORY_SIZE = 5;
+
+
+void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
     int n = std::get<0>(A.GetSize());
     Matrix::TMatrix v(n, 1);
 
     for (int j = 0; j < n; ++j) {
-        if (j < i)
+        if (j < i) {
             v.Set(j, 0, 0);
-        else if (j > 0)
+        }
+
+        else if (j > 0) {
             v.Set(j, 0, A.Get(j, i));
+        }
+
         else {
             float aDiag = A.Get(i, i);
             float signA = float((aDiag > 0) - (aDiag < 0));
             float sum = 0.0;
 
-            for (int t = j; t < n; ++t)
+            for (int t = j; t < n; ++t) {
                 sum += A.Get(t, i) * A.Get(t, i);
+            }
 
             v.Set(
                 j, i,
@@ -43,31 +56,30 @@ void QRDecompose(const Matrix::TMatrix& A, Matrix::TMatrix& Q, Matrix::TMatrix& 
     R = A;
 
     for (int i = 0; i < n - 1; ++i) {
-        HouseholderMatrix(R, i, H);
+        GetHouseholderMatrix(R, i, H);
         Q = Matrix::Mult(Q, H);
         R = Matrix::Mult(H, R);
     }
 }
 
 
-std::pair<std::complex<float>, std::complex<float>> FindComplexEigeValues(const Matrix::TMatrix& A, int i) {
+ComplexPair FindComplexEigeValues(const Matrix::TMatrix& A, int i) {
     float a1 = A.Get(i, i), a2 = A.Get(i + 1, i + 1);
     float a3 = A.Get(i + 1, i), a4 = A.Get(i, i + 1);
 
     float b = - a1 - a2;
     float c = a1 * a2 - a3 * a4;
-
     float d = b * b - 4.0 * c;
-    std::complex<float> dSqrt = std::sqrt(std::complex<float>(d, 0));
 
-    return {
-        std::complex<float>(0.5, 0.0) * (std::complex<float>(-b, 0.0) + dSqrt),
-        std::complex<float>(0.5, 0.0) * (std::complex<float>(-b, 0.0) - dSqrt)
-    };
+    std::complex<float> dSqrt = std::sqrt(std::complex<float>(d, 0));
+    std::complex<float> bComplex = std::complex<float>(b, 0.0);
+    std::complex<float> k = 0.5;
+
+    return { k * (-bComplex + dSqrt), k * (-bComplex - dSqrt) };
 }
 
 
-float t(const Matrix::TMatrix& A, int i, int j) {
+bool tReal(const Matrix::TMatrix& A, int i, int j, float eps) {
     int n = std::get<0>(A.GetSize());
     float sum = 0.0;
 
@@ -75,8 +87,7 @@ float t(const Matrix::TMatrix& A, int i, int j) {
         sum += A.Get(t, i) * A.Get(t, i);
     }
 
-    std::cout << "t(" << i << ", " << j << ") = " << std::sqrt(sum) << std::endl;
-    return std::sqrt(sum);
+    return std::sqrt(sum) <= eps;
 }
 
 
@@ -87,20 +98,31 @@ float tComplex(const Matrix::TMatrix& Ai, int i, float eps) {
     QRDecompose(Ai, Q, R);
     Matrix::TMatrix ANext = Matrix::Mult(R, Q);
 
-    auto lambda1 = FindComplexEigeValues(Ai, i);
-    auto lambda2 = FindComplexEigeValues(ANext, i);
+    ComplexPair lambda1 = FindComplexEigeValues(Ai, i);
+    ComplexPair lambda2 = FindComplexEigeValues(ANext, i);
 
-    return std::abs(lambda2.first - lambda1.first) <= eps && std::abs(lambda2.second - lambda1.second) <= eps;
+    return (std::abs(lambda2.first - lambda1.first) <= eps) && (std::abs(lambda2.second - lambda1.second) <= eps);
 }
 
 
-bool IsEigenReal(const std::vector<float>& history) {
-    for (int i = std::max(1, int(history.size()) - 5); i < history.size(); ++i) {
+bool IsEigenValueReal(const ChangeHistory& history) {
+    int startIndex = std::max(1, int(history.size()) - HISTORY_SIZE);
+
+    for (int i = startIndex; i < history.size(); ++i) {
         if (history[i] >= history[i - 1]) {
             return false;
         }
     }
     return true;
+}
+
+
+void UpdateChangeHistory(const Matrix::TMatrix& A, std::vector<ChangeHistory>& history) {
+    int n = std::get<0>(A.GetSize());
+
+    for (int i = 0; i < n - 1; ++i) {
+        history[i].push_back(std::abs(A.Get(i + 1, i)));
+    }
 }
 
 
@@ -113,65 +135,84 @@ std::vector<std::complex<float>> GetEigenValues(const Matrix::TMatrix& A, float 
     int i = 0;
 
     while (i < n) {
-        std::cout << "i: " << i << std::endl;
-        std::cout << "A:" << std::endl;
-        Matrix::Print(Ai);
-
-        std::cout << "history:" << std::endl;
-        for (auto row : history) {
-            std::cout << "[";
-            for (auto el : row) {
-                std::cout << el << " ";
-            }
-            std::cout << "]" << std::endl;
-        }
-
-        if ((IsEigenReal(history[i])) && t(Ai, i, i + 1) <= eps) {
-            values.push_back(Ai.Get(i, i));
-            std::cout << "value: " << Ai.Get(i, i) << std::endl;
-            i++;
-            continue;
-        }
-
-        if ((!IsEigenReal(history[i])) && (t(Ai, i, i + 2) <= eps) && tComplex(Ai, i, eps)) {
-            auto p = FindComplexEigeValues(Ai, i);
-            values.push_back(p.first);
-            values.push_back(p.second);
-            std::cout << "complex value (1): " << p.first << std::endl;
-            std::cout << "complex value (2): " << p.second << std::endl;
-            i += 2;
-            continue;
-        }
-
         QRDecompose(Ai, Q, R);
         Ai = Matrix::Mult(R, Q);
+        UpdateChangeHistory(Ai, history);
 
-        for (int t = 0; t < n - 1; ++t) {
-            history[t].push_back(std::abs(Ai.Get(t + 1, t)));
+        if (IsEigenValueReal(history[i])) {
+            if (tReal(Ai, i, i + 1, eps)) {
+                values.push_back(Ai.Get(i, i));
+                i++;
+            }
+        } else {
+            if (tReal(Ai, i, i + 2, eps) && tComplex(Ai, i, eps)) {
+                ComplexPair p = FindComplexEigeValues(Ai, i);
+                values.push_back(p.first);
+                values.push_back(p.second);
+                i += 2;
+            }
         }
     }
 
-    Matrix::Print(Ai);
     return values;
 }
 
 
+int ReadMatrixSize() {
+    int n;
+    std::cout << "Enter matrix size: ";
+    std::cin >> n;
+
+    if (n <= 0) {
+        throw std::runtime_error("matrix size can't be negative or zero");
+    }
+
+    return n;
+}
+
+
+Matrix::TMatrix ReadMatrix() {
+    int n = ReadMatrixSize();
+    Matrix::TMatrix A(n, n);
+    std::cout << "Enter matrix A:" << std::endl;
+    Matrix::Read(A);
+    return A;
+}
+
+
+float ReadEpsilon() {
+    float eps;
+    std::cout << "Enter precision: ";
+    std::cin >> eps;
+
+    if (eps < 0.0) {
+        throw std::runtime_error("precision can't be a negative value");
+    }
+
+    return eps;
+}
+
+
+void PrintEigenValues(const EigenValues& values) {
+    for (const std::complex<float>& value : values) {
+        if (value.imag() == 0.0) {
+            std::cout << value.real() << std::endl;
+        } else {
+            std::cout << value.real();
+            std::cout << ((value.imag() >= 0.0) ? " + " : " - ");
+            std::cout << std::abs(value.imag()) << "i" << std::endl;
+        }
+    }
+}
+
+
 int main(void) {
-    Matrix::TMatrix A ({
-        {1.0, 3.0, 1.0},
-        {1.0, 1.0, 4.0},
-        {4.0, 3.0, 1.0}
-    });
+    Matrix::TMatrix A = ReadMatrix();
+    float eps = ReadEpsilon();
+    EigenValues values = GetEigenValues(A, eps);
 
-    // Matrix::TMatrix A ({
-    //     { -1.0, 2.0, 9.0},
-    //     { 9.0, 3.0, 4.0 },
-    //     {8 ,-4, -6}
-    // });
+    std::cout << "Eigen values:" << std::endl;
+    PrintEigenValues(values);
 
-    GetEigenValues(A, 0.01);
-    // QRDecompose(A, Q, R);
-
-    // Matrix::Print(Q);
-    // Matrix::Print(R);
+    return 0;
 }
