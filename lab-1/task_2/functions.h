@@ -7,7 +7,7 @@
 
 
 void CalculateRunCoefficients(const Matrix::TMatrix& a, const Matrix::TMatrix& b, Matrix::TMatrix& result) {
-    int n = std::get<0>(a.GetSize());
+    int n = a.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
         if (i == 0) {
@@ -34,7 +34,7 @@ void CalculateRunCoefficients(const Matrix::TMatrix& a, const Matrix::TMatrix& b
 
 
 void SolveUsingRunCoefficients(const Matrix::TMatrix& runCoefs, Matrix::TMatrix& result) {
-    int n = std::get<0>(runCoefs.GetSize());
+    int n = runCoefs.GetSize().first;
 
     result.Set(n - 1, 0, runCoefs.Get(n - 1, 1));
     for (int i = n - 2; i >= 0; --i) {

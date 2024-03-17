@@ -5,7 +5,7 @@
 
 
 void ReadTridiagonalMatrix(Matrix::TMatrix& a) {
-    int n = std::get<0>(a.GetSize());
+    int n = a.GetSize().first;
     float value;
 
     for (int i = 0; i < n; ++i) {
@@ -38,7 +38,7 @@ void ReadTridiagonalMatrix(Matrix::TMatrix& a) {
 
 
 void CheckCoefficients(const Matrix::TMatrix& a, const Matrix::TMatrix& b) {
-    int n = std::get<0>(a.GetSize());
+    int n = a.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
         bool allZero = true;

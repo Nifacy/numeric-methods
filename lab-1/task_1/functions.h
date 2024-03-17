@@ -7,7 +7,7 @@
 
 
 void ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
-    int n = std::get<0>(m.GetSize());
+    int n = m.GetSize().first;
 
     // try to find a string with a non-zero element
     // and swap it with the current
@@ -16,7 +16,7 @@ void ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
 
         for (int j = k + 1; j < n; ++j) {
             if (m.Get(j, k) != 0.0) {
-                m.Swap(k, j);
+                m.SwapRaws(k, j);
                 found = true;
                 break;
             }
@@ -41,7 +41,7 @@ void ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
 
 
 void LUDecompose(const Matrix::TMatrix& a, Matrix::TMatrix& l, Matrix::TMatrix& u) {
-    int n = std::get<0>(a.GetSize());
+    int n = a.GetSize().first;
     std::vector<float> coef;
 
     l = Matrix::TMatrix::Eye(n);
@@ -59,7 +59,7 @@ void LUDecompose(const Matrix::TMatrix& a, Matrix::TMatrix& l, Matrix::TMatrix& 
 
 
 void SolveWithL(const Matrix::TMatrix& l, const std::vector<float>& b, std::vector<float>& x) {
-    int n = std::get<0>(l.GetSize());
+    int n = l.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
         x[i] = b[i];
@@ -71,7 +71,7 @@ void SolveWithL(const Matrix::TMatrix& l, const std::vector<float>& b, std::vect
 
 
 void SolveWithU(const Matrix::TMatrix& u, const std::vector<float>& b, std::vector<float>& x) {
-    int n = std::get<0>(u.GetSize());
+    int n = u.GetSize().first;
 
     for (int i = n - 1; i >= 0; --i) {
         x[i] = b[i];
@@ -99,7 +99,7 @@ void SolveSystem(
 
 float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u) {
     float d = 1.0;
-    int n = std::get<0>(l.GetSize());
+    int n = l.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
         d *= u.Get(i, i);
@@ -110,7 +110,7 @@ float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u) {
 
 
 void InverseMatrix(const Matrix::TMatrix& l, const Matrix::TMatrix& u, Matrix::TMatrix& r) {
-    int n = std::get<0>(l.GetSize());
+    int n = l.GetSize().first;
     std::vector<float> b(n, 0.0);
     std::vector<float> x(n, 0.0);
 

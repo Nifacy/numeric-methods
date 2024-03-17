@@ -15,7 +15,7 @@ struct EigenTaskResult {
 
 
 std::pair<int, int> FindMaxNotDiagonalElement(const Matrix::TMatrix& A) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     int maxI = 0, maxJ = 1;
 
     for (int i = 0; i < n; ++i) {
@@ -61,7 +61,7 @@ Matrix::TMatrix GetNextA(const Matrix::TMatrix& A, const Matrix::TMatrix& U) {
 
 
 float t(const Matrix::TMatrix& A) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     float s = 0.0, el;
 
     for (int i = 0; i < n; ++i) {
@@ -77,7 +77,7 @@ float t(const Matrix::TMatrix& A) {
 
 EigenTaskResult SolveEigenTask(const Matrix::TMatrix& M, float eps) {
     Matrix::TMatrix A(M);
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     Matrix::TMatrix U = Matrix::TMatrix::Eye(n);
     EigenTaskResult result;
     result.iterations = 0;

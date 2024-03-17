@@ -16,7 +16,7 @@ struct IterativeMethodResult {
 float Norm(const Matrix::TMatrix& m) {
     float matrixSum = 0.0;
     float element;
-    int n = std::get<0>(m.GetSize());
+    int n = m.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -30,7 +30,7 @@ float Norm(const Matrix::TMatrix& m) {
 
 
 void JakobiMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     float diagAlpha;
 
     for (int i = 0; i < n; ++i) {
@@ -48,7 +48,7 @@ void JakobiMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TM
 
 
 void inverseMatrix(const Matrix::TMatrix& m, Matrix::TMatrix& result) {
-    int n = std::get<0>(m.GetSize());
+    int n = m.GetSize().first;
     Matrix::TMatrix l(n, n), u(n, n);
 
     LUDecompose(m, l, u);
@@ -57,7 +57,7 @@ void inverseMatrix(const Matrix::TMatrix& m, Matrix::TMatrix& result) {
 
 
 void SeidelMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TMatrix& alpha, Matrix::TMatrix& beta) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     Matrix::TMatrix B(n, n), C(n, n), T(n, n);
     Matrix::TMatrix E = Matrix::TMatrix::Eye(n);
 
@@ -85,7 +85,7 @@ float Epsilon(float alphaNorm, const Matrix::TMatrix& x1, const Matrix::TMatrix&
 
 
 IterativeMethodResult IterativeMethod(const Matrix::TMatrix& alpha, const Matrix::TMatrix& beta, float eps) {
-    int n = std::get<0>(alpha.GetSize());
+    int n = alpha.GetSize().first;
     float alphaNorm = Norm(alpha);
     int iterations = 0;
 

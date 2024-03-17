@@ -15,7 +15,7 @@ const int HISTORY_SIZE = 5;
 
 
 void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     Matrix::TMatrix v(n, 1);
 
     for (int j = 0; j < n; ++j) {
@@ -52,7 +52,7 @@ void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
 
 
 void QRDecompose(const Matrix::TMatrix& A, Matrix::TMatrix& Q, Matrix::TMatrix& R) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     Matrix::TMatrix H(n, n);
     Q = Matrix::TMatrix::Eye(n);
     R = A;
@@ -82,7 +82,7 @@ ComplexPair FindComplexEigeValues(const Matrix::TMatrix& A, int i) {
 
 
 bool tReal(const Matrix::TMatrix& A, int i, int j, float eps) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     float sum = 0.0;
 
     for (int t = j; t < n; ++t) {
@@ -94,7 +94,7 @@ bool tReal(const Matrix::TMatrix& A, int i, int j, float eps) {
 
 
 float tComplex(const Matrix::TMatrix& Ai, int i, float eps) {
-    int n = std::get<0>(Ai.GetSize());
+    int n = Ai.GetSize().first;
     Matrix::TMatrix Q(n, n), R(n, n);
 
     QRDecompose(Ai, Q, R);
@@ -120,7 +120,7 @@ bool IsEigenValueReal(const ChangeHistory& history) {
 
 
 void UpdateChangeHistory(const Matrix::TMatrix& A, std::vector<ChangeHistory>& history) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
 
     for (int i = 0; i < n - 1; ++i) {
         history[i].push_back(std::abs(A.Get(i + 1, i)));
@@ -129,7 +129,7 @@ void UpdateChangeHistory(const Matrix::TMatrix& A, std::vector<ChangeHistory>& h
 
 
 EigenValues GetEigenValues(const Matrix::TMatrix& A, float eps) {
-    int n = std::get<0>(A.GetSize());
+    int n = A.GetSize().first;
     Matrix::TMatrix Q(n, n), R(n, n);
     Matrix::TMatrix Ai = A;
     EigenValues values;

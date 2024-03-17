@@ -7,7 +7,7 @@
 
 namespace Matrix {
 
-    using TSize = std::tuple<int, int>;
+    using TSize = std::pair<int, int>;
 
     class TMatrix {
     public:
@@ -42,15 +42,15 @@ namespace Matrix {
         }
 
         float Get(int i, int j) const {
-            return this->_data[i * std::get<1>(this->_size) + j];
+            return this->_data[i * this->_size.second + j];
         }
 
         void Set(int i, int j, float value) {
-            this->_data[i * std::get<1>(this->_size) + j] = value;
+            this->_data[i * this->_size.second + j] = value;
         }
 
-        void Swap(int i, int j) {
-            int n = std::get<1>(GetSize());
+        void SwapRaws(int i, int j) {
+            int n = GetSize().second;
             float temp;
 
             for (int t = 0; t < n; ++t) {
@@ -78,8 +78,8 @@ namespace Matrix {
     /* Operations */
 
     void Add(const TMatrix& a, const TMatrix& b, TMatrix& res) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(a.GetSize());
+        int n = a.GetSize().first;
+        int m = a.GetSize().second;
 
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < m; ++j) {
@@ -89,8 +89,8 @@ namespace Matrix {
     }
 
     TMatrix Add(const TMatrix& a, const TMatrix& b) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(a.GetSize());
+        int n = a.GetSize().first;
+        int m = a.GetSize().second;
 
         TMatrix res(n, m);
         Add(a, b, res);
@@ -98,9 +98,9 @@ namespace Matrix {
     }
 
     void Mult(const TMatrix& a, const TMatrix& b, TMatrix& res) {
-        int n = std::get<0>(a.GetSize());
-        int p = std::get<1>(a.GetSize());
-        int m = std::get<1>(b.GetSize());
+        int n = a.GetSize().first;
+        int p = a.GetSize().second;
+        int m = b.GetSize().second;
         float acc;
 
         for (int i = 0; i < n; ++i) {
@@ -117,17 +117,17 @@ namespace Matrix {
     }
 
     TMatrix Mult(const TMatrix& a, const TMatrix& b) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(b.GetSize());
-        
+        int n = a.GetSize().first;
+        int m = b.GetSize().second;
+
         TMatrix res(n, m);
         Mult(a, b, res);
         return res;
     }
 
     void Mult(const TMatrix& a, float k, TMatrix& res) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(a.GetSize());
+        int n = a.GetSize().first;
+        int m = a.GetSize().second;
 
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < m; ++j) {
@@ -137,8 +137,8 @@ namespace Matrix {
     }
 
     TMatrix Mult(const TMatrix& a, float k) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(a.GetSize());
+        int n = a.GetSize().first;
+        int m = a.GetSize().second;
 
         TMatrix res(n, m);
         Mult(a, k, res);
@@ -146,8 +146,8 @@ namespace Matrix {
     }
 
     TMatrix Transpose(const TMatrix& a) {
-        int n = std::get<0>(a.GetSize());
-        int m = std::get<1>(a.GetSize());
+        int n = a.GetSize().first;
+        int m = a.GetSize().second;
 
         TMatrix res(m, n);
 
@@ -163,8 +163,8 @@ namespace Matrix {
     /* IO Functions */
 
     void Print(const TMatrix& m) {
-        int a = std::get<0>(m.GetSize());
-        int b = std::get<1>(m.GetSize());
+        int a = m.GetSize().first;
+        int b = m.GetSize().second;
         std::cout << std::fixed;
 
         for (int i = 0; i < a; ++i) {
@@ -183,8 +183,8 @@ namespace Matrix {
     }
 
     void Read(TMatrix& m) {
-        int w = std::get<0>(m.GetSize());
-        int h = std::get<1>(m.GetSize());
+        int w = m.GetSize().first;
+        int h = m.GetSize().second;
         float element;
 
         for (int i = 0; i < w; ++i) {
