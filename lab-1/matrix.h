@@ -70,80 +70,65 @@ namespace Matrix {
             return *this;
         }
 
+        /* Operations */
+
+        TMatrix operator + (const TMatrix& other) const {
+            int n = GetSize().first;
+            int m = GetSize().second;
+            TMatrix res(n, m);
+
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < m; ++j) {
+                    res.Set(i, j, Get(i, j) + other.Get(i, j));
+                }
+            }
+
+            return res;
+        }
+
+        TMatrix operator * (const TMatrix& other) const {
+            int n = GetSize().first;
+            int p = GetSize().second;
+            int m = other.GetSize().second;
+            float acc;
+
+            TMatrix res(n, m);
+
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < m; ++j) {
+                    acc = 0.0;
+
+                    for (int t = 0; t < p; ++t) {
+                        acc += Get(i, t) * other.Get(t, j);
+                    }
+
+                    res.Set(i, j, acc);
+                }
+            }
+
+            return res;
+        }
+
+        TMatrix operator * (float k) const {
+            int n = GetSize().first;
+            int m = GetSize().second;
+            TMatrix res(n, m);
+
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < m; ++j) {
+                    res.Set(i, j, Get(i, j) * k);
+                }
+            }
+
+            return res;
+        }
+
     private:
         std::vector<float> _data;
         TSize _size;
     };
 
     /* Operations */
-
-    void Add(const TMatrix& a, const TMatrix& b, TMatrix& res) {
-        int n = a.GetSize().first;
-        int m = a.GetSize().second;
-
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < m; ++j) {
-                res.Set(i, j, a.Get(i, j) + b.Get(i, j));
-            }
-        }
-    }
-
-    TMatrix Add(const TMatrix& a, const TMatrix& b) {
-        int n = a.GetSize().first;
-        int m = a.GetSize().second;
-
-        TMatrix res(n, m);
-        Add(a, b, res);
-        return res;
-    }
-
-    void Mult(const TMatrix& a, const TMatrix& b, TMatrix& res) {
-        int n = a.GetSize().first;
-        int p = a.GetSize().second;
-        int m = b.GetSize().second;
-        float acc;
-
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < m; ++j) {
-                acc = 0.0;
-
-                for (int t = 0; t < p; ++t) {
-                    acc += a.Get(i, t) * b.Get(t, j);
-                }
-
-                res.Set(i, j, acc);
-            }
-        }
-    }
-
-    TMatrix Mult(const TMatrix& a, const TMatrix& b) {
-        int n = a.GetSize().first;
-        int m = b.GetSize().second;
-
-        TMatrix res(n, m);
-        Mult(a, b, res);
-        return res;
-    }
-
-    void Mult(const TMatrix& a, float k, TMatrix& res) {
-        int n = a.GetSize().first;
-        int m = a.GetSize().second;
-
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < m; ++j) {
-                res.Set(i, j, a.Get(i, j) * k);
-            }
-        }
-    }
-
-    TMatrix Mult(const TMatrix& a, float k) {
-        int n = a.GetSize().first;
-        int m = a.GetSize().second;
-
-        TMatrix res(n, m);
-        Mult(a, k, res);
-        return res;
-    }
 
     TMatrix Transpose(const TMatrix& a) {
         int n = a.GetSize().first;

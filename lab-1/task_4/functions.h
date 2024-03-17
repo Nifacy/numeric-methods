@@ -50,13 +50,7 @@ Matrix::TMatrix GetRotationMatrix(int n, int i, int j, float phi) {
 
 
 Matrix::TMatrix GetNextA(const Matrix::TMatrix& A, const Matrix::TMatrix& U) {
-    return Matrix::Mult(
-        Matrix::Mult(
-            Matrix::Transpose(U),
-            A
-        ),
-        U
-    );
+    return Matrix::Transpose(U) * A * U;
 }
 
 
@@ -87,7 +81,7 @@ EigenTaskResult SolveEigenTask(const Matrix::TMatrix& M, float eps) {
         float phi = GetRotationAngle(A, pos.first, pos.second);
         Matrix::TMatrix u = GetRotationMatrix(n, pos.first, pos.second, phi);
         A = GetNextA(A, u);
-        U = Matrix::Mult(U, u);
+        U = U * u;
         result.iterations++;
     }
 

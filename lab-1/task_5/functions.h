@@ -43,11 +43,8 @@ void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
         }
     }
 
-    float k = Matrix::Mult(Matrix::Transpose(v), v).Get(0, 0);
-
-    Matrix::Mult(v, Matrix::Transpose(v), H);
-    Matrix::Mult(H, -2.0 / k, H);
-    Matrix::Add(H, Matrix::TMatrix::Eye(n), H);
+    float k = (Matrix::Transpose(v) * v).Get(0, 0);
+    H = v * Matrix::Transpose(v) * (-2.0 / k) + Matrix::TMatrix::Eye(n);
 }
 
 
@@ -59,8 +56,8 @@ void QRDecompose(const Matrix::TMatrix& A, Matrix::TMatrix& Q, Matrix::TMatrix& 
 
     for (int i = 0; i < n - 1; ++i) {
         GetHouseholderMatrix(R, i, H);
-        Q = Matrix::Mult(Q, H);
-        R = Matrix::Mult(H, R);
+        Q = Q * H;
+        R = H * R;
     }
 }
 
@@ -98,7 +95,7 @@ float tComplex(const Matrix::TMatrix& Ai, int i, float eps) {
     Matrix::TMatrix Q(n, n), R(n, n);
 
     QRDecompose(Ai, Q, R);
-    Matrix::TMatrix ANext = Matrix::Mult(R, Q);
+    Matrix::TMatrix ANext = R * Q;
 
     ComplexPair lambda1 = FindComplexEigeValues(Ai, i);
     ComplexPair lambda2 = FindComplexEigeValues(ANext, i);
@@ -138,7 +135,7 @@ EigenValues GetEigenValues(const Matrix::TMatrix& A, float eps) {
 
     while (i < n) {
         QRDecompose(Ai, Q, R);
-        Ai = Matrix::Mult(R, Q);
+        Ai = R * Q;
         UpdateChangeHistory(Ai, history);
 
         if (IsEigenValueReal(history[i])) {

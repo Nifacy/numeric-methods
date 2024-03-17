@@ -71,15 +71,15 @@ void SeidelMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TM
         }
     }
 
-    inverseMatrix(Matrix::Add(E, Matrix::Mult(B, -1.0)), T);
-    alpha = Matrix::Mult(T, C);
-    beta = Matrix::Mult(T, beta);
+    inverseMatrix(E + B * (-1.0), T);
+    alpha = T * C;
+    beta = T * beta;
 }
 
 
 float Epsilon(float alphaNorm, const Matrix::TMatrix& x1, const Matrix::TMatrix& x2) {
     float coef = alphaNorm / (1 - alphaNorm);
-    Matrix::TMatrix diff = Matrix::Add(x1, Matrix::Mult(x2, -1.0));
+    Matrix::TMatrix diff = x1 + x2 * (-1.0);
     return coef * Norm(diff);
 }
 
@@ -94,8 +94,8 @@ IterativeMethodResult IterativeMethod(const Matrix::TMatrix& alpha, const Matrix
 
     while (true) {
         iterations++;
-        Matrix::Mult(alpha, x, x2);
-        Matrix::Add(x2, beta, x2);
+        x2 = alpha * x;
+        x2 = x2 + beta;
 
         if (Epsilon(alphaNorm, x, x2) <= eps) {
             break;
