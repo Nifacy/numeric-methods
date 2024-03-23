@@ -31,40 +31,6 @@ void CheckDeterminant(float d) {
 }
 
 
-float CountPermutationDeterminant(const Matrix::TMatrix& p) {
-    int n = p.GetSize().first;
-    std::vector<int> indexes(n, 0.0);
-    float d = 1.0;
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            if (p.Get(i, j) == 1.0) {
-                indexes[i] = j;
-            }
-        }
-    }
-
-    for (int i = 0; i < n; ++i) {
-        int k = 0;        
-
-        for (int j = i; j < n; ++j) {
-            if (indexes[j] == i) {
-                k = j;
-                break;
-            }
-        }
-
-        std::swap(indexes[i], indexes[k]);
-
-        if (k != i) {
-            d *= -1.0;
-        }
-    }
-
-    return d;
-}
-
-
 int main(void) {
     try {
         std::cout << "Enter number of equations: ";
@@ -88,31 +54,24 @@ int main(void) {
         // decompose matrix
         LUDecompose(a, l, u, p);
 
+        // solve system
+        SolveSystem(l, u, p, b, x);
+
+        // find determinant
+        d = Determinant(l, u, p);
+        CheckDeterminant(d);
+
+        // find inversed matrix
+        InverseMatrix(l, u, p, inversed);
+
         // print results
         std::cout << "LU decompose:" << std::endl;
         std::cout << "L:" << std::endl;
         Matrix::Print(l);
         std::cout << "U:" << std::endl;
         Matrix::Print(u);
-
         std::cout << "Permutation matrix:" << std::endl;
         Matrix::Print(p);
-
-        std::cout << "L * U:" << std::endl;
-        Matrix::Print(l * u);
-
-        std::cout << "P * A:" << std::endl;
-        Matrix::Print(p * a);
-
-        // solve system
-        SolveSystem(l, u, p * b, x);
-
-        // find determinant
-        d = CountPermutationDeterminant(p) * Determinant(l, u);
-        CheckDeterminant(d);
-
-        // find inversed matrix
-        InverseMatrix(l, u, p, inversed);
 
         std::cout << "\nSolution: x: ";
         Matrix::Print(Matrix::Transpose(x));
@@ -122,7 +81,21 @@ int main(void) {
 
         std::cout << "\nInversed matrix A:" << std::endl;
         Matrix::Print(inversed);
-    
+
+        std::cout << "\n--- CHECKS ---\n" << std::endl;
+
+        std::cout << "L * U:" << std::endl;
+        Matrix::Print(l * u);
+
+        std::cout << "P * A:" << std::endl;
+        Matrix::Print(p * a);
+
+        std::cout << "A * x = ";
+        Matrix::Print(Matrix::Transpose(a * x));
+
+        std::cout << "A * (A ^ (-1)): " << std::endl;
+        Matrix::Print(a * inversed);
+
     } catch (const std::exception& err) {
         std::cout << "error : " << err.what() << std::endl;
         exit(1);

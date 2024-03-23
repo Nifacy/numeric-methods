@@ -100,16 +100,51 @@ void SolveWithU(const Matrix::TMatrix& u, const Matrix::TMatrix& b, Matrix::TMat
 void SolveSystem(
     const Matrix::TMatrix& l,
     const Matrix::TMatrix& u,
+    const Matrix::TMatrix& p,
     const Matrix::TMatrix& b,
     Matrix::TMatrix& x
 ) {
     Matrix::TMatrix z(b.GetSize().first, 1);
-    SolveWithL(l, b, z);
+    SolveWithL(l, p * b, z);
     SolveWithU(u, z, x);
 }
 
 
-float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u) {
+float countPermutationDeterminant(const Matrix::TMatrix& p) {
+    int n = p.GetSize().first;
+    std::vector<int> indexes(n, 0.0);
+    float d = 1.0;
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (p.Get(i, j) == 1.0) {
+                indexes[i] = j;
+            }
+        }
+    }
+
+    for (int i = 0; i < n; ++i) {
+        int k = 0;        
+
+        for (int j = i; j < n; ++j) {
+            if (indexes[j] == i) {
+                k = j;
+                break;
+            }
+        }
+
+        std::swap(indexes[i], indexes[k]);
+
+        if (k != i) {
+            d *= -1.0;
+        }
+    }
+
+    return d;
+}
+
+
+float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u, const Matrix::TMatrix& p) {
     float d = 1.0;
     int n = l.GetSize().first;
 
@@ -117,7 +152,7 @@ float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u) {
         d *= u.Get(i, i);
     }
 
-    return d;
+    return countPermutationDeterminant(p) * d;
 }
 
 
@@ -127,15 +162,12 @@ void InverseMatrix(const Matrix::TMatrix& l, const Matrix::TMatrix& u, const Mat
     Matrix::TMatrix x(n, 1);
 
     for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            b.Set(j, 0, p.Get(j, i));
-        }
-
-        SolveSystem(l, u, b, x);
-
+        b.Set(i, 0, 1.0);
+        SolveSystem(l, u, p, b, x);
         for (int j = 0; j < n; ++j) {
             r.Set(j, i, x.Get(j, 0));
         }
+        b.Set(i, 0, 0.0);
     }
 }
 
