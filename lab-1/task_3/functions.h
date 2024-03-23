@@ -49,10 +49,10 @@ void JakobiMethod(const Matrix::TMatrix& A, const Matrix::TMatrix& b, Matrix::TM
 
 void inverseMatrix(const Matrix::TMatrix& m, Matrix::TMatrix& result) {
     int n = m.GetSize().first;
-    Matrix::TMatrix l(n, n), u(n, n);
+    Matrix::TMatrix l(n, n), u(n, n), p(n, n);
 
-    LUDecompose(m, l, u);
-    InverseMatrix(l, u, result);
+    LUDecompose(m, l, u, p);
+    InverseMatrix(l, u, p, result);
 }
 
 
