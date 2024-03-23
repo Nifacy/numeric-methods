@@ -46,7 +46,7 @@ namespace Matrix {
         }
 
         void Set(int i, int j, float value) {
-            this->_data[i * this->_size.second + j] = value;
+            this->_data.at(i * this->_size.second + j) = value;
         }
 
         void SwapRaws(int i, int j) {
