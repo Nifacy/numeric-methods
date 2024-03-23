@@ -94,8 +94,7 @@ IterativeMethodResult IterativeMethod(const Matrix::TMatrix& alpha, const Matrix
 
     while (true) {
         iterations++;
-        x2 = alpha * x;
-        x2 = x2 + beta;
+        x2 = alpha * x + beta;
 
         if (Epsilon(alphaNorm, x, x2) <= eps) {
             break;
