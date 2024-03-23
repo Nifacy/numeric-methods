@@ -23,7 +23,7 @@ void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
             v.Set(j, 0, 0);
         }
 
-        else if (j > 0) {
+        else if (j > i) {
             v.Set(j, 0, A.Get(j, i));
         }
 
