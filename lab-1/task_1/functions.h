@@ -6,25 +6,27 @@
 #include <algorithm>
 
 
-void ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
+std::pair<int, int> ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
     int n = m.GetSize().first;
+
+    // find element with maximum square to avoid small dividers
+    int swapIndex = k;
+
+    for (int i = k + 1; i < n; ++i) {
+        float a = m.Get(swapIndex, k);
+        float b = m.Get(i, k);
+
+        if (a * a > b * b) {
+            swapIndex = i;
+        }
+    }
+
+    m.SwapRaws(k, swapIndex);
 
     // try to find a string with a non-zero element
     // and swap it with the current
     if (m.Get(k, k) == 0.0) {
-        bool found = false;
-
-        for (int j = k + 1; j < n; ++j) {
-            if (m.Get(j, k) != 0.0) {
-                m.SwapRaws(k, j);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
+        return {k, k};
     }
 
     // convert raws below so that the elements are zero
@@ -37,50 +39,60 @@ void ForwardStep(Matrix::TMatrix& m, int k, std::vector<float>& coef) {
 
         coef.push_back(c);
     }
+
+    return {k, swapIndex};
 }
 
 
-void LUDecompose(const Matrix::TMatrix& a, Matrix::TMatrix& l, Matrix::TMatrix& u) {
+void LUDecompose(const Matrix::TMatrix& a, Matrix::TMatrix& l, Matrix::TMatrix& u, Matrix::TMatrix& p) {
     int n = a.GetSize().first;
     std::vector<float> coef;
 
+    p = Matrix::TMatrix::Eye(n);
     l = Matrix::TMatrix::Eye(n);
     u = a;
+
     coef.reserve(n); // reserve max possible number of bytes to avoid allocations
 
     for (int k = 0; k < n - 1; ++k) {
-        ForwardStep(u, k, coef);
+        std::pair<int, int> swap = ForwardStep(u, k, coef);
+
         for (int i = 0; i < coef.size(); ++i) {
             l.Set(i + k + 1, k, coef[i]);
         }
+
+        p.SwapRaws(swap.first, swap.second);
+
         coef.clear();
     }
 }
 
 
-void SolveWithL(const Matrix::TMatrix& l, const std::vector<float>& b, std::vector<float>& x) {
+void SolveWithL(const Matrix::TMatrix& l, const Matrix::TMatrix& b, Matrix::TMatrix& x) {
     int n = l.GetSize().first;
 
     for (int i = 0; i < n; ++i) {
-        x[i] = b[i];
+        float c = b.Get(i, 0);
         for (int j = 0; j < i; ++j) {
-            x[i] -= x[j] * l.Get(i, j);
+            c -= x.Get(j, 0) * l.Get(i, j);
         }
+        x.Set(i, 0, c);
     }
 }
 
 
-void SolveWithU(const Matrix::TMatrix& u, const std::vector<float>& b, std::vector<float>& x) {
+void SolveWithU(const Matrix::TMatrix& u, const Matrix::TMatrix& b, Matrix::TMatrix& x) {
     int n = u.GetSize().first;
 
     for (int i = n - 1; i >= 0; --i) {
-        x[i] = b[i];
+        float c = b.Get(i, 0);
 
         for (int j = i + 1; j < n; ++j) {
-            x[i] -= x[j] * u.Get(i, j);
+            c -= x.Get(j, 0) * u.Get(i, j);
         }
 
-        x[i] /= u.Get(i, i);
+        c /= u.Get(i, i);
+        x.Set(i, 0, c);
     }
 }
 
@@ -88,10 +100,10 @@ void SolveWithU(const Matrix::TMatrix& u, const std::vector<float>& b, std::vect
 void SolveSystem(
     const Matrix::TMatrix& l,
     const Matrix::TMatrix& u,
-    const std::vector<float>& b,
-    std::vector<float>& x
+    const Matrix::TMatrix& b,
+    Matrix::TMatrix& x
 ) {
-    std::vector<float> z(b.size(), 0.0);
+    Matrix::TMatrix z(b.GetSize().first, 1);
     SolveWithL(l, b, z);
     SolveWithU(u, z, x);
 }
@@ -109,20 +121,21 @@ float Determinant(const Matrix::TMatrix& l, const Matrix::TMatrix& u) {
 }
 
 
-void InverseMatrix(const Matrix::TMatrix& l, const Matrix::TMatrix& u, Matrix::TMatrix& r) {
+void InverseMatrix(const Matrix::TMatrix& l, const Matrix::TMatrix& u, const Matrix::TMatrix& p, Matrix::TMatrix& r) {
     int n = l.GetSize().first;
-    std::vector<float> b(n, 0.0);
-    std::vector<float> x(n, 0.0);
+    Matrix::TMatrix b(n, 1);
+    Matrix::TMatrix x(n, 1);
 
     for (int i = 0; i < n; ++i) {
-        b[i] = 1.0;
+        for (int j = 0; j < n; ++j) {
+            b.Set(j, 0, p.Get(j, i));
+        }
+
         SolveSystem(l, u, b, x);
 
         for (int j = 0; j < n; ++j) {
-            r.Set(j, i, x[j]);
+            r.Set(j, i, x.Get(j, 0));
         }
-
-        b[i] = 0.0;
     }
 }
 

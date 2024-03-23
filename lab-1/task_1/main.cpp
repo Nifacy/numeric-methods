@@ -31,17 +31,51 @@ void CheckDeterminant(float d) {
 }
 
 
+float CountPermutationDeterminant(const Matrix::TMatrix& p) {
+    int n = p.GetSize().first;
+    std::vector<int> indexes(n, 0.0);
+    float d = 1.0;
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (p.Get(i, j) == 1.0) {
+                indexes[i] = j;
+            }
+        }
+    }
+
+    for (int i = 0; i < n; ++i) {
+        int k = 0;        
+
+        for (int j = i; j < n; ++j) {
+            if (indexes[j] == i) {
+                k = j;
+                break;
+            }
+        }
+
+        std::swap(indexes[i], indexes[k]);
+
+        if (k != i) {
+            d *= -1.0;
+        }
+    }
+
+    return d;
+}
+
+
 int main(void) {
     try {
         std::cout << "Enter number of equations: ";
         int n = ReadNumberOfEquations();
 
         Matrix::TMatrix a(n, n);
-        Matrix::TMatrix l(n, n), u(n, n);
+        Matrix::TMatrix l(n, n), u(n, n), p(n, n);
         Matrix::TMatrix inversed(n, n);
 
-        std::vector<float> b(n, 0.0);
-        std::vector<float> x(n, 0.0);
+        Matrix::TMatrix b(n, 1);
+        Matrix::TMatrix x(n, 1);
 
         float d;
 
@@ -49,20 +83,10 @@ int main(void) {
         std::cout << "Enter matrix A:" << std::endl;
         Matrix::Read(a);
         std::cout << "Enter vector b:" << std::endl;
-        ReadVector(b);
+        Matrix::Read(b);
 
         // decompose matrix
-        LUDecompose(a, l, u);
-
-        // solve system
-        SolveSystem(l, u, b, x);
-
-        // find determinant
-        d = Determinant(l, u);
-        CheckDeterminant(d);
-
-        // find inversed matrix
-        InverseMatrix(l, u, inversed);
+        LUDecompose(a, l, u, p);
 
         // print results
         std::cout << "LU decompose:" << std::endl;
@@ -71,11 +95,27 @@ int main(void) {
         std::cout << "U:" << std::endl;
         Matrix::Print(u);
 
-        std::cout << "\nSolution: x = [ ";
-        for (const float el: x) {
-            std::cout << std::setprecision(3) << el << " ";
-        }
-        std::cout << "]" << std::endl;
+        std::cout << "Permutation matrix:" << std::endl;
+        Matrix::Print(p);
+
+        std::cout << "L * U:" << std::endl;
+        Matrix::Print(l * u);
+
+        std::cout << "P * A:" << std::endl;
+        Matrix::Print(p * a);
+
+        // solve system
+        SolveSystem(l, u, p * b, x);
+
+        // find determinant
+        d = CountPermutationDeterminant(p) * Determinant(l, u);
+        CheckDeterminant(d);
+
+        // find inversed matrix
+        InverseMatrix(l, u, p, inversed);
+
+        std::cout << "\nSolution: x: ";
+        Matrix::Print(Matrix::Transpose(x));
 
         std::cout << "\nDeterminant of A: det(A) = ";
         std::cout << std::setprecision(3) << d << std::endl;
