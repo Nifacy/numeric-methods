@@ -9,7 +9,7 @@
 using IterationMatrixCalculator = std::function<void(const Matrix::TMatrix&, const Matrix::TMatrix&, Matrix::TMatrix&, Matrix::TMatrix&)>;
 
 
-IterationMatrixCalculator ReadIterationMethod() {
+int ReadIterationMethod() {
     std::cout << "Choose iteration method:" << std::endl;
     std::cout << "1. Jakobi method" << std::endl;
     std::cout << "2. Seidel method" << std::endl;
@@ -17,12 +17,8 @@ IterationMatrixCalculator ReadIterationMethod() {
     int n;
     std::cin >> n;
 
-    if (n == 1) {
-        return JakobiMethod;
-    }
-
-    else if (n == 2) {
-        return SeidelMethod;
+    if (n == 1 | n == 2) {
+        return n;
     }
 
     throw std::runtime_error("unknown method's code " + std::to_string(n));
@@ -66,12 +62,15 @@ int main() {
         std::cout << "Enter matrix b:" << std::endl;
         Matrix::Read(b);
 
-        IterationMatrixCalculator method = ReadIterationMethod();
+        if (ReadIterationMethod() == 1) {
+            JakobiMethod(A, b, alpha, beta);
+        } else {
+            SeidelMethod(A, b, alpha, beta);
+        }
 
         std::cout << "Enter accuracy: ";
         float eps = ReadAccuracy();
 
-        method(A, b, alpha, beta);
         IterativeMethodResult result = IterativeMethod(alpha, beta, eps);
 
         std::cout << "Result:" << std::endl;
