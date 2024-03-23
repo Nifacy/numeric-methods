@@ -37,7 +37,7 @@ void GetHouseholderMatrix(const Matrix::TMatrix& A, int i, Matrix::TMatrix& H) {
             }
 
             v.Set(
-                j, i,
+                j, 0,
                 aDiag + signA * sqrt(sum)
             );
         }
@@ -138,18 +138,14 @@ EigenValues GetEigenValues(const Matrix::TMatrix& A, float eps) {
         Ai = R * Q;
         UpdateChangeHistory(Ai, history);
 
-        if (IsEigenValueReal(history[i])) {
-            if (tReal(Ai, i, i + 1, eps)) {
-                values.push_back(Ai.Get(i, i));
-                i++;
-            }
-        } else {
-            if (tReal(Ai, i, i + 2, eps) && tComplex(Ai, i, eps)) {
-                ComplexPair p = FindComplexEigeValues(Ai, i);
-                values.push_back(p.first);
-                values.push_back(p.second);
-                i += 2;
-            }
+        if (tReal(Ai, i, i + 1, eps)) {
+            values.push_back(Ai.Get(i, i));
+            i++;
+        } else if (tComplex(Ai, i, eps) && tReal(Ai, i, i + 2, eps)) {
+            ComplexPair p = FindComplexEigeValues(Ai, i);
+            values.push_back(p.first);
+            values.push_back(p.second);
+            i += 2;
         }
     }
 
