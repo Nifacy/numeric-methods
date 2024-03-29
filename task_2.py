@@ -1,12 +1,70 @@
+from itertools import product
 from math import exp
+from typing import Callable
 import numpy as np
+
+
+
+class VectorFunction(np.ndarray):
+    def __new__(cls, input_array) -> 'VectorFunction':
+        obj = np.asarray(input_array).view(cls)
+        return obj
+
+    def __call__(self, x: np.ndarray[float]) -> np.ndarray[float]:
+        return np.array([func(x) for func in self])
+
+
+def sign(x: float) -> float:
+    if x == 0.0: return 0.0
+    if x < 0.0: return -1.0
+    return 1.0
+
+
+def max_value(f: Callable[[np.ndarray[float]], float], a: np.ndarray[float], b: np.ndarray[float]) -> float:
+    ranges = [np.arange(i, j, 0.01) for i, j in zip(a, b)]
+    return max(map(f, product(*ranges)))
+
+
+def partial_derivative(f: Callable[[np.ndarray[float]], float], arg_index: int) -> Callable[[np.ndarray[float]], float]:
+    dx = 0.0001
+    def _df(x):
+        n = len(x)
+        x2 = x + np.array([dx if i == arg_index else 0.0 for i in range(n)])
+        return (f(x2) - f(x)) / dx
+    return _df
+
+
+def derivative(f: Callable[[np.ndarray[float]], float], n: int) -> VectorFunction:
+    return VectorFunction([
+        partial_derivative(f, i)
+        for i in range(n)
+    ])
+
+
+def jakobi_matrix(f: VectorFunction) -> VectorFunction:
+    n = len(f)
+    return VectorFunction([
+        derivative(el, n)
+        for el in f
+    ])
 
 
 def norm(matrix):
     return abs(matrix).max()
 
-def iteration_method(x0, phi, eps, iterations):
-    last_x = x0
+def build_phi(f, n, index, s1, s2):
+    f_el = f[index]
+    df = derivative(f_el, n)
+    pdf = partial_derivative(f_el, index)
+    f_sign = sign(pdf(s1))
+    mx = max_value(lambda x: norm(df(x)), s1, s2)
+    return lambda x: x[index] - (f_sign / mx) * f_el(x)
+
+
+def iteration_method(f, s1, s2, eps, iterations):
+    n = len(f)
+    phi = VectorFunction([build_phi(f, n, i, s1, s2) for i in range(n)])
+    last_x = (s1 + s2) / 2.0
     i = 0
 
     while i <= iterations:
@@ -19,8 +77,9 @@ def iteration_method(x0, phi, eps, iterations):
     return last_x
 
 
-def newton_method(x0, f, J, eps, iterations):
-    last_x = x0
+def newton_method(f, s1, s2, eps, iterations):
+    J = jakobi_matrix(f)
+    last_x = (s1 + s2) / 2.0
     i = 0
 
     while i <= iterations:
@@ -29,32 +88,22 @@ def newton_method(x0, f, J, eps, iterations):
 
         if norm(x - last_x) <= eps:
             return x
-        
+
         last_x = x
         i += 1
     
     return last_x
 
 
-x = np.array([1.0, 2.0])
-
 a = 2.0
 f1 = lambda x: x[0] ** 2 + x[1] ** 2 - a ** 2
 f2 = lambda x: x[0] - exp(x[1]) + a
+f = VectorFunction([f1, f2])
 
-df1 = lambda x: np.array([2.0 * x[0], 2.0 * x[1]])
-df2 = lambda x: np.array([1.0, -exp(x[1])])
+s1, s2 = np.array([1.0, 1.0]), np.array([2.0, 2.0])
 
-phi1 = lambda x: x[0] - (1.0 / norm(df1(np.array([2.0, 2.0])))) * f1(x)
-phi2 = lambda x: x[1] - (-1.0 / norm(df2(np.array([2.0, 2.0])))) * f2(x)
-
-phi = lambda x: np.array([phi1(x), phi2(x)])
-x0 = np.array([1.5, 1.5])
 eps = 0.0001
 iterations = 100
 
-f = lambda x: np.array([f1(x), f2(x)])
-J = lambda x: np.array([df1(x), df2(x)])
-
-print(iteration_method(x0, phi, eps, iterations))
-print(newton_method(x0, f, J, eps, iterations))
+print(iteration_method(f, s1, s2, eps, iterations))
+print(newton_method(f, s1, s2, eps, iterations))
