@@ -28,11 +28,11 @@ def iterations_method(f, a, b, eps, iterations):
     while i <= iterations:
         x = phi(last_x)
         if abs(x - last_x) <= (1 - q) / q * eps:
-            return x
+            return x, i
         last_x = x
         i += 1
 
-    return last_x
+    return last_x, i
 
 
 def newton_method(f, a, b, eps, iterations):
@@ -44,11 +44,11 @@ def newton_method(f, a, b, eps, iterations):
     while i <= iterations:
         x = last_x - f(last_x) / df(last_x)
         if abs(x - last_x) <= eps:
-            return x
+            return x, i
         last_x = x
         i += 1
     
-    return last_x
+    return last_x, i
 
 
 if __name__ == '__main__':

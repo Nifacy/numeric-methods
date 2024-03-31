@@ -62,7 +62,7 @@ class RangeSelectionVisualizer:
     def __init__(self, borders: tuple[float, float], plot_widget: PlotWidget, styles: Mapping[str, Any] | None = None):
         self._widget = plot_widget
         self._borders = borders
-        self._styles = dict(styles)
+        self._styles = dict(styles) if styles is not None else dict()
         self._plot = self._widget.axes.axvspan(borders[0], borders[1], **self._styles)
 
     @property
@@ -85,3 +85,29 @@ class RangeSelectionVisualizer:
     def styles(self, value: Mapping[str, Any]) -> None:
         self._styles = dict(value)
         plt.setp(self._plot, **self._styles)
+
+
+class VLineVisualizer:
+    def __init__(self, plot_widget: PlotWidget, x: float, styles: Mapping[str, Any] | None = None):
+        self._widget = plot_widget
+        self._plot = self._widget.axes.axvline(x)
+
+        if styles is not None:
+            plt.setp(self._plot, **styles)
+
+    @property
+    def position(self) -> float:
+        return self._plot.get_xdata()[0]
+    
+    @position.setter
+    def position(self, value: float) -> None:
+        self._plot.set_xdata([value, value])
+        self._widget.draw()
+
+    def hide(self) -> None:
+        self._plot.set_visible(False)
+        self._widget.draw()
+
+    def show(self) -> None:
+        self._plot.set_visible(True)
+        self._widget.draw()

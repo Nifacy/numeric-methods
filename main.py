@@ -9,13 +9,9 @@ from plot_widget.plot_widget import PlotUpdateEvent
 
 import task_1
 
-from PyQt5.QtCore import QTimer
+from plot_widget.visualizers import FunctionVisualizer, RangeSelectionVisualizer, VLineVisualizer
 
-import matplotlib.pyplot as plt
-
-from plot_widget.visualizers import FunctionVisualizer, RangeSelectionVisualizer
-
-from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QComboBox
+from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QComboBox, QDoubleSpinBox, QSpinBox
 
 
 from math import *
@@ -23,7 +19,9 @@ from math import *
 
 def function_from_formula(formula: str) -> Callable[[float], float]:
     def _f(x: float) -> float:
-        return eval(formula.replace('x', f'({x})'))
+        value = eval(formula.replace('x', f'({x})'))
+        assert isinstance(value, float)
+        return value
     return _f
 
 
@@ -33,9 +31,9 @@ class Winow(QWidget):
         self.setLayout(self._init_objects())
 
     def _init_objects(self):
-        self._plot_widget = PlotWidget(self)
+        self._plot_widget = PlotWidget(self, 20)
         add_grid(self._plot_widget)
-        self._function_visualizer = FunctionVisualizer(function_from_formula('x ** 2 - 2'), self._plot_widget, {
+        self._function_visualizer = FunctionVisualizer(function_from_formula('x'), self._plot_widget, {
             'color': 'red',
             'linewidth': 1,
         })
@@ -47,14 +45,32 @@ class Winow(QWidget):
         self._resize_controller = ResizeController(self._plot_widget)
         self._range_contoller = RangeSelectionController(self._plot_widget, self._range_visualizer)
 
+        self._answer_line = VLineVisualizer(self._plot_widget, 1.0, {'color': 'orange', 'linewidth': 2})
+        self._answer_line.hide()
+
         self._function_prefix = QLabel('f(x) = ')
         self._function_editor = QLineEdit(self)
+        self._function_editor.setText('x')
         self._start_button = QPushButton('Start')
         self._range_label = QLabel('Область: [0, 0]')
         self._method_combo_box = QComboBox()
         self._method_combo_box.addItems(['Итераций', 'Ньютона'])
         self._method_preifx = QLabel('Метод: ')
         self._answer_label = QLabel('Ответ: x = 0.00000')
+        self._answer_iterations_label = QLabel('Кол-во итераций: 0')
+        self._error_label = QLabel('Ошибка: Функция введена неверно')
+        self._error_label.setStyleSheet('color: red')
+        self._error_label.hide()
+        self._epsilon_label = QLabel('eps = ')
+        self._epsilon_input = QDoubleSpinBox()
+        self._epsilon_input.setDecimals(10)
+        self._epsilon_input.setValue(0.01)
+        self._epsilon_input.setSingleStep(0.01)
+        self._epsilon_input.setRange(10 ** (-10), 1.0)
+
+        self._iteration_label = QLabel('Кол-во итераций: ')
+        self._iteration_input = QSpinBox()
+        self._iteration_input.setMinimum(1)
 
         self._function_layout = QHBoxLayout()
         self._function_layout.addWidget(self._function_prefix)
@@ -64,13 +80,30 @@ class Winow(QWidget):
         self._method_layout.addWidget(self._method_preifx)
         self._method_layout.addWidget(self._method_combo_box, 1)
 
+        self._epsilon_layout = QHBoxLayout()
+        self._epsilon_layout.addWidget(self._epsilon_label)
+        self._epsilon_layout.addWidget(self._epsilon_input, 1)
+
+        self._iteration_layout = QHBoxLayout()
+        self._iteration_layout.addWidget(self._iteration_label)
+        self._iteration_layout.addWidget(self._iteration_input, 1)
+
+        self._answer_layout = QVBoxLayout()
+        self._answer_layout.addWidget(self._answer_label)
+        self._answer_layout.addWidget(self._answer_iterations_label)
+        self._answer_label.hide()
+        self._answer_iterations_label.hide()
+
         self._main_layout = QVBoxLayout()
         self._main_layout.addWidget(self._plot_widget, 1)
         self._main_layout.addLayout(self._function_layout)
+        self._main_layout.addWidget(self._error_label)
+        self._main_layout.addLayout(self._epsilon_layout)
+        self._main_layout.addLayout(self._iteration_layout)
         self._main_layout.addWidget(self._range_label)
         self._main_layout.addLayout(self._method_layout)
         self._main_layout.addWidget(self._start_button)
-        self._main_layout.addWidget(self._answer_label)
+        self._main_layout.addLayout(self._answer_layout)
 
         # bindings
         def f1(_):
@@ -79,8 +112,13 @@ class Winow(QWidget):
         
         def f2():
             formula = self._function_editor.text()
-            self._function_visualizer.function = function_from_formula(formula)
-        
+            try:
+                new_function = function_from_formula(formula)
+            except:
+                self._error_label.show()
+            else:
+                self._function_visualizer.function = new_function
+
         def f3():
             choosed_method = self._method_combo_box.currentText()
             if choosed_method == 'Итераций':
@@ -89,14 +127,20 @@ class Winow(QWidget):
                 method = task_1.newton_method
 
             a, b = self._range_visualizer.borders
-            eps = 0.0001
-            iterations = 100
+            eps = self._epsilon_input.value()
+            iterations = self._iteration_input.value()
             f = self._function_visualizer.function
-            ans = method(f, a, b, eps, iterations)
+            ans, iters = method(f, a, b, eps, iterations)
 
             self._answer_label.setText(f'Ответ: x = {ans:.5f}')
+            self._answer_iterations_label.setText(f'Кол-во итераций: {iters}')
+            self._answer_label.show()
+            self._answer_iterations_label.show()
+            self._answer_line.position = ans
+            self._answer_line.show()
 
         self._plot_widget.mpl_connect('draw_event', f1)
+        self._function_editor.textChanged.connect(self._error_label.hide)
         self._function_editor.editingFinished.connect(f2)
         self._start_button.clicked.connect(f3)
 
