@@ -15,10 +15,14 @@ from plot_widget.visualizers import CurveVisualizer, FunctionVisualizer, PointVi
 from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QComboBox, QDoubleSpinBox, QSpinBox
 
 from math import *
+from sympy import symbols, sympify, lambdify
 
 
 def function_from_formula(formula: str) -> Callable[[float], float]:
-    return eval(f'lambda x_1, x_2: {formula}')
+    x_1, x_2 = symbols('x_1 x_2')
+    expression = sympify(formula)
+    func = lambdify([x_1, x_2], expression, 'numpy')
+    return func
 
 
 class Window(QWidget):
