@@ -51,10 +51,11 @@ def newton_method(f, a, b, eps, iterations):
     return last_x
 
 
-f = lambda x: 2 ** x + x ** 2 - 2.0
-a, b = 0.5, 1.0
-eps = 0.0001
-iterations = 100
+if __name__ == '__main__':
+    f = lambda x: 2 ** x + x ** 2 - 2.0
+    a, b = 0.5, 1.0
+    eps = 0.0001
+    iterations = 100
 
-print(iterations_method(f, a, b, eps, iterations))
-print(newton_method(f, a, b, eps, iterations))
+    print(iterations_method(f, a, b, eps, iterations))
+    print(newton_method(f, a, b, eps, iterations))

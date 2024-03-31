@@ -1,9 +1,8 @@
 from matplotlib.backend_bases import MouseEvent, MouseButton
 from PyQt5.QtCore import QPointF
 
+from .visualizers import RangeSelectionVisualizer
 from .plot_widget import PlotWidget
-
-import matplotlib.pyplot as plt
 
 
 class ResizeController:
@@ -43,9 +42,9 @@ class ResizeController:
 
 
 class RangeSelectionController:
-    def __init__(self, plot_widget: PlotWidget):
+    def __init__(self, plot_widget: PlotWidget, range_visualizer: RangeSelectionVisualizer):
         self._widget = plot_widget
-        self._plot = plot_widget.axes.axvspan(0, 1, color='blue', alpha=0.2)
+        self._visualizer = range_visualizer
         self._range = [0.0, 0.0]
         self._pressed = False
         self._subscribe_on_events()
@@ -54,10 +53,12 @@ class RangeSelectionController:
         if event.button == MouseButton.LEFT:
             self._pressed = True
             self._range[0] = event.xdata
+            self._visualizer.borders = (self._range[0], self._range[0])
 
     def _on_mouse_move(self, event: MouseEvent) -> None:
-        if self._pressed:
+        if self._pressed and (event.xdata is not None):
             self._range[1] = event.xdata
+            self._visualizer.borders = tuple(sorted(self._range))
 
     def _on_mouse_release(self, _: MouseEvent) -> None:
         self._pressed = False
