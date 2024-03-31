@@ -3,6 +3,7 @@ from math import exp
 from typing import Callable
 import numpy as np
 
+from lab_1 import task_1
 
 
 class VectorFunction(np.ndarray):
@@ -78,13 +79,18 @@ def iteration_method(f, s1, s2, eps, iterations):
     return last_x, i
 
 
+def solve_system(A, b):
+    l, u, p = task_1.lu_decompose(A)
+    return task_1.solve_system(l, u, p, b)
+
+
 def newton_method(f, s1, s2, eps, iterations):
     J = jakobi_matrix(f)
     last_x = (s1 + s2) / 2.0
     i = 0
 
     while i <= iterations:
-        dx = np.linalg.solve(J(last_x), -f(last_x))
+        dx = solve_system(J(last_x), -f(last_x))
         x = last_x + dx
 
         if norm(x - last_x) <= eps:

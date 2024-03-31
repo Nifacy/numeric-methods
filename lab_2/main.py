@@ -3,13 +3,13 @@ import sys
 from typing import Any, Callable, Mapping
 import numpy as np
 from PyQt5 import QtWidgets
-from plot_widget import PlotWidget, add_grid, ResizeController
-from plot_widget.controller import RangeSelectionController
-from plot_widget.plot_widget import PlotUpdateEvent
+from .plot_widget import PlotWidget, add_grid, ResizeController
+from .plot_widget.controller import RangeSelectionController
+from .plot_widget.plot_widget import PlotUpdateEvent
 
-import task_1
+from . import task_1
 
-from plot_widget.visualizers import FunctionVisualizer, RangeSelectionVisualizer, VLineVisualizer
+from .plot_widget.visualizers import FunctionVisualizer, RangeSelectionVisualizer, VLineVisualizer
 
 from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QComboBox, QDoubleSpinBox, QSpinBox
 
