@@ -66,8 +66,8 @@ class CurveVisualizer:
         styles: Mapping[str, Any] | None = None,
     ):
         self._widget = plot_widget
-        self._f = f
-        self._scale = 6.0
+        self._f = np.vectorize(f)
+        self._scale = 8.0
         self._styles = {} if styles is None else dict(styles)
         self._xlim = self._widget.axes.get_xlim()
         self._ylim = self._widget.axes.get_ylim()
@@ -203,4 +203,32 @@ class RectAreaVisualizer:
         self._s1, self._s2 = value
         (x1, y1), (x2, y2) = self._s1, self._s2
         self._plot.set_xy([[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]])
+        self._widget.draw()
+
+
+
+class PointVisualizer:
+    def __init__(self, plot_widget: PlotWidget, pos: tuple[float, float], styles: Mapping[str, Any] | None = None) -> None:
+        self._widget = plot_widget
+        self._plot, = self._widget.axes.plot([pos[0]], [pos[1]], marker='o')
+
+        if styles is not None:
+            plt.setp(self._plot, **styles)
+
+    @property
+    def position(self) -> tuple[float, float]:
+        x, y = self._plot.get_xdata(), self._plot.get_ydata()
+        return x[0], y[0]
+
+    @position.setter
+    def position(self, value: tuple[float, float]) -> None:
+        self._plot.set_xdata([value[0]])
+        self._plot.set_ydata([value[1]])
+
+    def hide(self) -> None:
+        self._plot.set_visible(False)
+        self._widget.draw()
+
+    def show(self) -> None:
+        self._plot.set_visible(True)
         self._widget.draw()

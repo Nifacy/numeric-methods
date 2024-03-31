@@ -62,6 +62,7 @@ def build_phi(f, n, index, s1, s2):
 
 
 def iteration_method(f, s1, s2, eps, iterations):
+    print(f'iterations({f}, {s1}, {s2}, {eps}, {iterations})')
     n = len(f)
     phi = VectorFunction([build_phi(f, n, i, s1, s2) for i in range(n)])
     last_x = (s1 + s2) / 2.0
@@ -70,11 +71,11 @@ def iteration_method(f, s1, s2, eps, iterations):
     while i <= iterations:
         x = phi(last_x)
         if norm(x - last_x) <= eps:
-            return x
+            return x, i
         last_x = x
         i += 1
 
-    return last_x
+    return last_x, i
 
 
 def newton_method(f, s1, s2, eps, iterations):
@@ -87,23 +88,24 @@ def newton_method(f, s1, s2, eps, iterations):
         x = last_x + dx
 
         if norm(x - last_x) <= eps:
-            return x
+            return x, i
 
         last_x = x
         i += 1
     
-    return last_x
+    return last_x, i
 
 
-a = 2.0
-f1 = lambda x: x[0] ** 2 + x[1] ** 2 - a ** 2
-f2 = lambda x: x[0] - exp(x[1]) + a
-f = VectorFunction([f1, f2])
+if __name__ == '__main__':
+    a = 2.0
+    f1 = lambda x: x[0] ** 2 + x[1] ** 2 - a ** 2
+    f2 = lambda x: x[0] - exp(x[1]) + a
+    f = VectorFunction([f1, f2])
 
-s1, s2 = np.array([1.0, 1.0]), np.array([2.0, 2.0])
+    s1, s2 = np.array([1.0, 1.0]), np.array([2.0, 2.0])
 
-eps = 0.0001
-iterations = 100
+    eps = 0.0001
+    iterations = 100
 
-print(iteration_method(f, s1, s2, eps, iterations))
-print(newton_method(f, s1, s2, eps, iterations))
+    print(iteration_method(f, s1, s2, eps, iterations))
+    print(newton_method(f, s1, s2, eps, iterations))
