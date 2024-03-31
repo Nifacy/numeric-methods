@@ -58,6 +58,67 @@ class FunctionVisualizer:
         self._widget.on_update.disconnect(self._on_update)
 
 
+class CurveVisualizer:
+    def __init__(
+        self,
+        f: Callable[[float, float], float],
+        plot_widget: PlotWidget,
+        styles: Mapping[str, Any] | None = None,
+    ):
+        self._widget = plot_widget
+        self._f = f
+        self._scale = 6.0
+        self._styles = {} if styles is None else dict(styles)
+        self._xlim = self._widget.axes.get_xlim()
+        self._ylim = self._widget.axes.get_ylim()
+        self._last_scale = self._scale / self._widget.scale
+        self._bind_to_plot_widget()
+
+    def _on_update(self, event: PlotUpdateEvent) -> None:
+        self._last_scale = self._scale / event.scale
+        self._xlim = (event.xlim.begin, event.xlim.end)
+        self._ylim = (event.ylim.begin, event.ylim.end)
+        self._render_curve()
+
+    def _render_curve(self):
+        x = np.arange(*self._xlim, self._last_scale)
+        y = np.arange(*self._ylim, self._last_scale)
+        X, Y = np.meshgrid(x, y)
+        Z = self._f(X, Y)
+        self._plot.remove()
+        self._plot = self._widget.axes.contour(X, Y, Z, levels=[0], **self._styles)
+
+    def _bind_to_plot_widget(self) -> None:
+        x = np.arange(*self._xlim, self._last_scale)
+        y = np.arange(*self._ylim, self._last_scale)
+        X, Y = np.meshgrid(x, y)
+        Z = self._f(X, Y)
+        self._plot = self._widget.axes.contour(X, Y, Z, levels=[0], **self._styles)
+        self._widget.on_update.connect(self._on_update)
+
+    @property
+    def styles(self) -> dict[str, Any]:
+        return self._styles
+
+    @styles.setter
+    def styles(self, value: Mapping[str, Any]) -> None:
+        self._styles = dict(value)
+        plt.setp(self._plot, **self._styles)
+
+    @property
+    def function(self) -> Callable[[float, float], float]:
+        return self._f
+    
+    @function.setter
+    def function(self, value: Callable[[float, float], float]) -> None:
+        self._f = value
+        self._render_curve()
+        self._widget.draw()
+
+    def __del__(self) -> None:
+        self._widget.on_update.disconnect(self._on_update)
+
+
 class RangeSelectionVisualizer:
     def __init__(self, borders: tuple[float, float], plot_widget: PlotWidget, styles: Mapping[str, Any] | None = None):
         self._widget = plot_widget
@@ -110,4 +171,36 @@ class VLineVisualizer:
 
     def show(self) -> None:
         self._plot.set_visible(True)
+        self._widget.draw()
+
+
+class RectAreaVisualizer:
+    def __init__(
+        self,
+        plot_widget: PlotWidget,
+        s1: tuple[float, float],
+        s2: tuple[float, float],
+        styles: Mapping[str, Any] | None = None
+    ):
+        self._widget = plot_widget
+        (x1, y1), (x2, y2) = s1, s2
+        self._s1 = s1
+        self._s2 = s2
+        self._plot, = plot_widget.axes.fill([x1, x2, x2, x1], [y1, y1, y2, y2])
+
+        if styles is not None:
+            self.set_styles(styles)
+
+    def set_styles(self, styles: Mapping[str, Any]) -> None:
+        plt.setp(self._plot, **styles)
+
+    @property
+    def coords(self) -> tuple[tuple[float, float], tuple[float, float]]:
+        return self._s1, self._s2
+    
+    @coords.setter
+    def coords(self, value: tuple[tuple[float, float], tuple[float, float]]) -> None:
+        self._s1, self._s2 = value
+        (x1, y1), (x2, y2) = self._s1, self._s2
+        self._plot.set_xy([[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]])
         self._widget.draw()
