@@ -8,14 +8,12 @@ def forward_step(m: np.ndarray[float], k: int) -> tuple[int, int, list[float]]:
     swap_index = k
 
     for i in range(k + 1, n):
-        a, b = m[swap_index, k], m[i, k]
+        a, b = m[i, k], m[swap_index, k]
         if a * a > b * b:
             swap_index = i
 
     m[[k, swap_index]] = m[[swap_index, k]]
 
-    # try to find a string with a non-zero element
-    # and swap it with the current
     if m[k, k] == 0.0:
         return k, k, []
 
@@ -47,6 +45,9 @@ def lu_decompose(a: np.ndarray[float]) -> tuple[np.ndarray[float], np.ndarray[fl
             l[i + k + 1, k] = coef[i]
 
         p[[swap[0], swap[1]]] = p[[swap[1], swap[0]]]
+
+        for t in range(k):
+            l[swap[0], t], l[swap[1], t] = l[swap[1], t], l[swap[0], t]
 
     return l, u, p
 
