@@ -1,4 +1,8 @@
+import argparse
+import sys
+import pathlib
 import numpy as np
+from typing import TextIO
 
 
 def forward_step(m: np.ndarray[float], k: int) -> tuple[int, int, list[float]]:
@@ -146,15 +150,15 @@ def print_matrix(matrix: np.ndarray[float]) -> None:
 # user interface
 
 
-def read_matrix(m: int, n: int) -> np.ndarray[float]:
+def read_matrix(m: int, n: int, input_stream: TextIO) -> np.ndarray[float]:
     rows = []
     for _ in range(m):
-        rows.append(list(map(float, input().split())))
+        rows.append(list(map(float, input_stream.readline().strip().split())))
     return np.array(rows)
 
 
-def read_vector(n: int) -> np.ndarray[float]:
-    return np.array(list(map(float, input().split())))
+def read_vector(n: int, input_stream: TextIO) -> np.ndarray[float]:
+    return np.array(list(map(float, input_stream.readline().strip().split())))
 
 
 def check_determinant(d: float) -> None:
@@ -162,14 +166,39 @@ def check_determinant(d: float) -> None:
         raise ValueError("matrix can't be a singular")
 
 
-def _main():
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input-file", type=pathlib.Path, default=None)
+    return parser.parse_args()
+
+
+def _dialog_input():
     n = int(input("Enter number of equations: "))
 
     print("Enter matrix A:")
-    A = read_matrix(n, n)
+    A = read_matrix(n, n, sys.stdin)
 
     print("Enter vector b:")
-    b = read_vector(n)
+    b = read_vector(n, sys.stdin)
+
+    return A, b
+
+
+def _file_input(path: pathlib.Path):
+    with path.open('r', encoding='utf-8') as file:
+        n = int(file.readline().strip())
+        A = read_matrix(n, n, file)
+        b = read_vector(n, file)
+        return A, b
+
+
+def _main():
+    args = _parse_args()
+
+    if args.input_file is None:
+        A, b = _dialog_input()
+    else:
+        A, b = _file_input(args.input_file)
 
     l, u, p = lu_decompose(A)
     d = determinant(l, u, p)
