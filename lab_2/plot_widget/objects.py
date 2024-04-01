@@ -13,7 +13,7 @@ class BasePlotObject:
     def __init__(self, plot_widget: PlotWidget, styles: Styles | None = None):
         self._widget = plot_widget
         self.__plot = None
-        self._styles = styles or {}
+        self._styles = styles
 
     @property
     def _plot(self):
@@ -22,7 +22,8 @@ class BasePlotObject:
     @_plot.setter
     def _plot(self, value):
         self.__plot = value
-        plt.setp(self.__plot, **self._styles)
+        if self._styles is not None:
+            plt.setp(self.__plot, **self._styles)
         self._widget.draw()
 
     @property
@@ -32,7 +33,8 @@ class BasePlotObject:
     @styles.setter
     def styles(self, value: Styles) -> None:
         self._styles = value
-        plt.setp(self.__plot, **self._styles)
+        if self._styles is not None:
+            plt.setp(self.__plot, **self._styles)
         self._widget.draw()
 
     def hide(self) -> None:
@@ -88,7 +90,7 @@ class OneArgFunction(BasePlotObject):
         self._widget.draw()
 
 
-class Curve:
+class Curve(BasePlotObject):
     def __init__(
         self,
         plot_widget: PlotWidget,
@@ -96,9 +98,10 @@ class Curve:
         step: float = 8.0,
         styles: Mapping[str, Any] | None = None,
     ):
-        super().__init__(plot_widget, styles)
+        super().__init__(plot_widget, None)
         self._func = np.vectorize(f)
         self._step = step
+        self._params = styles
         self._xlim = self._widget.axes.get_xlim()
         self._ylim = self._widget.axes.get_ylim()
         self._last_scale = self._step / self._widget.scale
@@ -117,7 +120,7 @@ class Curve:
         Z = self._func(X, Y)
         if self._plot is not None:
             self._plot.remove()
-        self._plot = self._widget.axes.contour(X, Y, Z, levels=[0], **self._styles)
+        self._plot = self._widget.axes.contour(X, Y, Z, levels=[0], **self._params)
 
     def _bind_to_plot_widget(self) -> None:
         self._render_curve()
