@@ -1,4 +1,5 @@
 from typing import NamedTuple
+
 import matplotlib
 
 matplotlib.use("Qt5Agg")
@@ -73,3 +74,32 @@ class PlotWidget(FigureCanvasQTAgg):
             scale=self.scale,
         )
         self.on_update.emit(update_event_context)
+
+
+def add_grid(plot_widget: PlotWidget) -> None:
+    ax = plot_widget.axes
+
+    # add grid
+    ax.grid(True, which="both", color="gray", alpha=0.5)
+
+    # move axes in center
+    ax.spines["left"].set_position("zero")
+    ax.spines["bottom"].set_position("zero")
+
+    # remove up and right borders
+    ax.spines["right"].set_color("none")
+    ax.spines["top"].set_color("none")
+
+    # set styles of axes
+    ax.spines["left"].set_linewidth(1.5)
+    ax.spines["bottom"].set_linewidth(1.5)
+    ax.spines["left"].set_color("gray")
+    ax.spines["bottom"].set_color("gray")
+    ax.tick_params(axis="both", colors="gray", width=1.5)
+
+    # displat coordinates on major axes
+    ax.xaxis.set_tick_params(which="both", width=2)
+    ax.yaxis.set_tick_params(which="both", width=2)
+
+    # set scale 1:1
+    ax.set_aspect("equal", adjustable="box")

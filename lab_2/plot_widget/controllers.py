@@ -1,8 +1,8 @@
-from matplotlib.backend_bases import MouseEvent, MouseButton
+from matplotlib.backend_bases import MouseButton, MouseEvent
 from PyQt5.QtCore import QPointF
 
-from .visualizers import RangeSelectionVisualizer, RectAreaVisualizer
-from .plot_widget import PlotWidget
+from .objects import RangeSelection, RectArea
+from .widget import PlotWidget
 
 
 class ResizeController:
@@ -42,9 +42,9 @@ class ResizeController:
 
 
 class RangeSelectionController:
-    def __init__(self, plot_widget: PlotWidget, range_visualizer: RangeSelectionVisualizer):
+    def __init__(self, plot_widget: PlotWidget, range_obj: RangeSelection):
         self._widget = plot_widget
-        self._visualizer = range_visualizer
+        self._range_object = range_obj
         self._range = [0.0, 0.0]
         self._pressed = False
         self._subscribe_on_events()
@@ -53,12 +53,12 @@ class RangeSelectionController:
         if event.button == MouseButton.LEFT:
             self._pressed = True
             self._range[0] = event.xdata
-            self._visualizer.borders = (self._range[0], self._range[0])
+            self._range_object.borders = (self._range[0], self._range[0])
 
     def _on_mouse_move(self, event: MouseEvent) -> None:
         if self._pressed and (event.xdata is not None):
             self._range[1] = event.xdata
-            self._visualizer.borders = tuple(sorted(self._range))
+            self._range_object.borders = tuple(sorted(self._range))
 
     def _on_mouse_release(self, _: MouseEvent) -> None:
         self._pressed = False
@@ -70,7 +70,7 @@ class RangeSelectionController:
 
 
 class RectSelectionController:
-    def __init__(self, plot_widget: PlotWidget, rect_area: RectAreaVisualizer):
+    def __init__(self, plot_widget: PlotWidget, rect_area: RectArea):
         self._widget = plot_widget
         self._rect_area = rect_area
         self._s1 = (0.0, 0.0)
@@ -87,7 +87,9 @@ class RectSelectionController:
     def _on_mouse_move(self, event: MouseEvent) -> None:
         if self._pressed and (event.xdata is not None):
             self._s2 = (event.xdata, event.ydata)
-            (x1, x2), (y1, y2) = sorted([self._s1[0], self._s2[0]]), sorted([self._s1[1], self._s2[1]])
+            (x1, x2), (y1, y2) = sorted([self._s1[0], self._s2[0]]), sorted(
+                [self._s1[1], self._s2[1]]
+            )
             self._rect_area.coords = ((x1, y1), (x2, y2))
 
     def _on_mouse_release(self, _: MouseEvent) -> None:
@@ -97,32 +99,3 @@ class RectSelectionController:
         self._widget.mpl_connect("button_press_event", self._on_mouse_press)
         self._widget.mpl_connect("motion_notify_event", self._on_mouse_move)
         self._widget.mpl_connect("button_release_event", self._on_mouse_release)
-
-
-def add_grid(plot_widget: PlotWidget) -> None:
-    ax = plot_widget.axes
-
-    # add grid
-    ax.grid(True, which='both', color='gray', alpha=0.5)
-
-    # move axes in center
-    ax.spines['left'].set_position('zero')
-    ax.spines['bottom'].set_position('zero')
-
-    # remove up and right borders
-    ax.spines['right'].set_color('none')
-    ax.spines['top'].set_color('none')
-
-    # set styles of axes
-    ax.spines['left'].set_linewidth(1.5)
-    ax.spines['bottom'].set_linewidth(1.5)
-    ax.spines['left'].set_color('gray')
-    ax.spines['bottom'].set_color('gray')
-    ax.tick_params(axis='both', colors='gray', width=1.5)
-
-    # displat coordinates on major axes
-    ax.xaxis.set_tick_params(which='both', width=2)
-    ax.yaxis.set_tick_params(which='both', width=2)
-
-    # set scale 1:1
-    ax.set_aspect('equal', adjustable='box')
