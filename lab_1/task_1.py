@@ -61,7 +61,7 @@ def solve_with_l(l: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float
         for j in range(i):
             c -= x[j] * l[i, j]
         x[i] = c
-    
+
     return x
 
 
@@ -74,7 +74,7 @@ def solve_with_u(u: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float
         for j in range(i + 1, n):
             c -= x[j] * u[i, j]
         x[i] = c / u[i, i]
-    
+
     return x
 
 
@@ -82,7 +82,7 @@ def solve_system(
     l: np.ndarray[float],
     u: np.ndarray[float],
     p: np.ndarray[float],
-    b: np.ndarray[float]
+    b: np.ndarray[float],
 ) -> np.ndarray[float]:
     z = solve_with_l(l, np.dot(p, b))
     x = solve_with_u(u, z)
@@ -136,3 +136,80 @@ def inverse_matrix(l: np.ndarray[float], u: np.ndarray[float], p: np.ndarray[flo
         b[i] = 0.0
 
     return np.array(xs).T
+
+
+def print_matrix(matrix: np.ndarray[float]) -> None:
+    f = np.vectorize(lambda x: round(x, 5))
+    print(f(matrix))
+
+
+# user interface
+
+
+def read_matrix(m: int, n: int) -> np.ndarray[float]:
+    rows = []
+    for _ in range(m):
+        rows.append(list(map(float, input().split())))
+    return np.array(rows)
+
+
+def read_vector(n: int) -> np.ndarray[float]:
+    return np.array(list(map(float, input().split())))
+
+
+def check_determinant(d: float) -> None:
+    if d == 0.0:
+        raise ValueError("matrix can't be a singular")
+
+
+def _main():
+    n = int(input("Enter number of equations: "))
+
+    print("Enter matrix A:")
+    A = read_matrix(n, n)
+
+    print("Enter vector b:")
+    b = read_vector(n)
+
+    l, u, p = lu_decompose(A)
+    d = determinant(l, u, p)
+    check_determinant(d)
+    x = solve_system(l, u, p, b)
+    inversed = inverse_matrix(l, u, p)
+
+    print("LU decompose:")
+    print("L:")
+    print_matrix(l)
+    print("U:")
+    print_matrix(u)
+    print("Permuation matrix:")
+    print_matrix(p)
+
+    print()
+    print(f"Solution x: {x}")
+
+    print()
+    print(f"Determinant of A: det(A) = {round(d, 5)}")
+
+    print()
+    print("Inversed matrix A:")
+    print_matrix(inversed)
+
+    print("\n--- CHECKS ---\n")
+    print("L * U:")
+    print_matrix(np.matmul(l, u))
+    print("P * A:")
+    print_matrix(np.matmul(p, A))
+    print(f"A * x = {np.matmul(A, x.T).T}")
+    print("A * (A ^ (-1)):")
+    print_matrix(np.matmul(A, inversed))
+
+
+if __name__ == "__main__":
+    try:
+        _main()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(f"error: {e}")
+        exit(1)
