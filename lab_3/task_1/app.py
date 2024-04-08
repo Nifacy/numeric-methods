@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import (
     QSpacerItem,
     QSizePolicy
 )
-from PyQt5.QtCore import QPointF, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from sympy import lambdify, symbols, sympify
 
 from common.plot_widget.controllers import ResizeController
@@ -160,6 +160,8 @@ class BoundNodePoint:
     node: NodeItemWidget
 
 
+# TODO: refactor this part
+# TODO: fix bug with same point values (maybe by automate increasing value)
 class Task1Window(QWidget):
     DEFAULT_FUNCTION = "sqrt(x)"
     INTERPLOATION_FACTORIES = {

@@ -73,6 +73,7 @@ def _derivative(f: Callable[[float], float]):
     return _df
 
 
+# TODO: optimize using optimizing methods (maybe by numpy) 
 def _max_value(f: Callable[[float], float], a: float, b: float) -> float:
     step = 0.01
     return max(map(f, np.arange(a, b + step, step)), default=f(a))
