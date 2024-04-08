@@ -46,6 +46,11 @@ class BasePlotObject:
         if self._plot is not None:
             self._plot.set_visible(True)
             self._widget.draw()
+    
+    def __del__(self):
+        if self._plot is not None:
+            self._plot.remove()
+            self._widget.draw()
 
 
 class OneArgFunction(BasePlotObject):
