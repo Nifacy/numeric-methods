@@ -1,8 +1,10 @@
 import argparse
-import sys
 import pathlib
+import sys
+
 import numpy as np
-from typing import TextIO
+
+from common.matrix_utils import read_matrix, read_vector
 
 
 def forward_step(m: np.ndarray[float], k: int) -> tuple[int, int, list[float]]:
@@ -150,17 +152,6 @@ def print_matrix(matrix: np.ndarray[float]) -> None:
 # user interface
 
 
-def read_matrix(m: int, n: int, input_stream: TextIO) -> np.ndarray[float]:
-    rows = []
-    for _ in range(m):
-        rows.append(list(map(float, input_stream.readline().strip().split())))
-    return np.array(rows)
-
-
-def read_vector(n: int, input_stream: TextIO) -> np.ndarray[float]:
-    return np.array(list(map(float, input_stream.readline().strip().split())))
-
-
 def check_determinant(d: float) -> None:
     if d == 0.0:
         raise ValueError("matrix can't be a singular")
@@ -185,7 +176,7 @@ def _dialog_input():
 
 
 def _file_input(path: pathlib.Path):
-    with path.open('r', encoding='utf-8') as file:
+    with path.open("r", encoding="utf-8") as file:
         n = int(file.readline().strip())
         A = read_matrix(n, n, file)
         b = read_vector(n, file)
