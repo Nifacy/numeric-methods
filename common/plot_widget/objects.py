@@ -220,7 +220,7 @@ class Point(BasePlotObject):
         styles: Mapping[str, Any] | None = None,
     ):
         super().__init__(plot_widget, styles)
-        (self._plot,) = self._widget.axes.plot([pos[0]], [pos[1]], marker="o")
+        (self._plot,) = self._widget.axes.plot([pos[0]], [pos[1]], marker="o", picker=5)
 
     @property
     def position(self) -> Coords:

@@ -1,9 +1,11 @@
-from matplotlib.backend_bases import MouseButton, MouseEvent
+from dataclasses import dataclass
+from typing import Optional
+from matplotlib.backend_bases import MouseButton, MouseEvent, PickEvent
 from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import pyqtSignal, QObject
 
-from .objects import RangeSelection, RectArea
+from .objects import BasePlotObject, Point, RangeSelection, RectArea
 from .widget import PlotWidget
-
 
 class ResizeController:
     def __init__(self, plot_widget: PlotWidget):
@@ -99,3 +101,55 @@ class RectSelectionController:
         self._widget.mpl_connect("button_press_event", self._on_mouse_press)
         self._widget.mpl_connect("motion_notify_event", self._on_mouse_move)
         self._widget.mpl_connect("button_release_event", self._on_mouse_release)
+
+
+class PointDragController(QObject):
+    _lock: Optional['PointDragController'] = None
+    EPSILON = 5
+
+    @dataclass(frozen=True, slots=True)
+    class PositionUpdateEvent:
+        x: float
+        y: float
+
+    on_update = pyqtSignal(PositionUpdateEvent)
+
+    def __init__(self, plot_widget: PlotWidget, point: Point):
+        super().__init__()
+        self._widget = plot_widget
+        self._point = point
+        self._last_position: tuple[float, float] | None = None
+        self._subscribe_on_events()
+
+    def _on_pick(self, event: PickEvent) -> None:
+        if event.artist != self._point._plot:
+            return
+        
+        if PointDragController._lock is not None:
+            return
+        
+        PointDragController._lock = self
+        self._last_position = (event.mouseevent.xdata, event.mouseevent.ydata)
+
+    def _on_motion(self, event: MouseEvent) -> None:
+        if PointDragController._lock is not self:
+            return
+
+        if event.xdata is None or event.ydata is None:
+            return
+
+        cx, cy = self._last_position
+        dx, dy = event.xdata - cx, event.ydata - cy
+        px, py = self._point.position
+        self._point.position = (px + dx, py + dy)
+        self._last_position = (event.xdata, event.ydata)
+        self.on_update.emit(self.PositionUpdateEvent(*self._point.position))
+
+    def _on_release(self, _: MouseEvent) -> None:
+        if PointDragController._lock is self:
+            PointDragController._lock = None
+
+    def _subscribe_on_events(self) -> None:
+        self._widget.mpl_connect("pick_event", self._on_pick)
+        self._widget.mpl_connect("motion_notify_event", self._on_motion)
+        self._widget.mpl_connect("button_release_event", self._on_release)
