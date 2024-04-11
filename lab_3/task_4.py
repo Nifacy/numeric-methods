@@ -33,7 +33,7 @@ def second_derivative(X: Vector, Y: Vector, i: int, x: float) -> float:
     """
     term1 = (Y[i + 1] - Y[i]) / (X[i + 1] - X[i])
     term2 = (Y[i + 2] - Y[i + 1]) / (X[i + 2] - X[i + 1]) - term1
-    term3 = (x - X[i]) * (x - X[i + 1])
+    term3 = 2 * x - X[i] - X[i + 1]
     return term1 + term2 / (X[i + 2] - X[i]) * term3
 
 
