@@ -97,7 +97,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main():
+def _main():
     arguments = _parse_args()
 
     if arguments.input_file is not None:
@@ -144,4 +144,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        _main()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(f"error: {e}")
+        exit(1)
