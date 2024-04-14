@@ -6,9 +6,10 @@ from typing import TextIO
 import numpy as np
 
 from common.matrix_utils import read_matrix
+from common.typing import Matrix, Vector
 
 
-def calculate_run_coefficients(A: np.ndarray[float], B: np.ndarray[float]) -> np.ndarray[float]:
+def calculate_run_coefficients(A: Matrix, B: Matrix) -> Matrix:
     n = A.shape[0]
     result = np.zeros((n, 2))
 
@@ -30,7 +31,7 @@ def calculate_run_coefficients(A: np.ndarray[float], B: np.ndarray[float]) -> np
     return result
 
 
-def solve_using_coefficients(run_coefs: np.ndarray[float]) -> np.ndarray[float]:
+def solve_using_coefficients(run_coefs: Matrix) -> Vector:
     n = run_coefs.shape[0]
     result = np.zeros(n)
 
@@ -41,7 +42,7 @@ def solve_using_coefficients(run_coefs: np.ndarray[float]) -> np.ndarray[float]:
     return result
 
 
-def solve_system(A: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float]:
+def solve_system(A: Matrix, b: Matrix) -> Vector:
     run_coefs = calculate_run_coefficients(A, b)
     return solve_using_coefficients(run_coefs)
 
@@ -49,7 +50,7 @@ def solve_system(A: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float
 # user interface
 
 
-def _read_tridiagonal_matrix(n: int, input_stream: TextIO) -> np.ndarray[float]:
+def _read_tridiagonal_matrix(n: int, input_stream: TextIO) -> Matrix:
     a = np.zeros((n, 3))
 
     for i in range(n):
@@ -63,14 +64,6 @@ def _read_tridiagonal_matrix(n: int, input_stream: TextIO) -> np.ndarray[float]:
             a[i, :] = values
 
     return a
-
-
-def _check_coefficients(A: np.ndarray[float], b: np.ndarray[float]):
-    n = A.shape()[0]
-
-    for i in range(n):
-        if all(x == 0.0 for x in A[i, :]) and b[i, 0] != 0.0:
-            raise ValueError("Can't find solution of system")
 
 
 def _read_number_of_equations():

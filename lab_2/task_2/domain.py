@@ -3,7 +3,9 @@ from math import exp
 from typing import NamedTuple
 
 import numpy as np
+from common.typing import Matrix
 from common.typing import MultiArgFunction
+from common.typing import Vector
 from lab_1 import task_1
 
 
@@ -17,7 +19,7 @@ class VectorFunction(np.ndarray):
         obj = np.asarray(input_array).view(cls)
         return obj
 
-    def __call__(self, x: np.ndarray[float]) -> np.ndarray[float]:
+    def __call__(self, x: Vector) -> Vector:
         return np.array([func(x) for func in self])
 
 
@@ -29,7 +31,7 @@ def _sign(x: float) -> float:
     return 1.0
 
 
-def _max_value(f: MultiArgFunction, a: np.ndarray[float], b: np.ndarray[float]) -> float:
+def _max_value(f: MultiArgFunction, a: Vector, b: Vector) -> float:
     ranges = [np.arange(i, j, 0.01) for i, j in zip(a, b)]
     return max(map(f, product(*ranges)))
 
@@ -54,17 +56,11 @@ def _jakobi_matrix(f: VectorFunction) -> VectorFunction:
     return VectorFunction([_derivative(el, n) for el in f])
 
 
-def _norm(matrix: np.ndarray[float]):
+def _norm(matrix: Vector) -> float:
     return abs(matrix).max()
 
 
-def _build_phi(
-    f: VectorFunction,
-    n: int,
-    index: int,
-    s1: np.ndarray[float],
-    s2: np.ndarray[float],
-) -> MultiArgFunction:
+def _build_phi(f: VectorFunction, n: int, index: int, s1: Vector, s2: Vector) -> MultiArgFunction:
     f_el = f[index]
     df = _derivative(f_el, n)
     pdf = _partial_derivative(f_el, index)
@@ -73,18 +69,12 @@ def _build_phi(
     return lambda x: x[index] - (f_sign / mx) * f_el(x)
 
 
-def _solve_system(A: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float]:
+def _solve_system(A: Matrix, b: Vector) -> Vector:
     l, u, p = task_1.lu_decompose(A)
     return task_1.solve_system(l, u, p, b)
 
 
-def iteration_method(
-    f: MultiArgFunction,
-    s1: np.ndarray[float],
-    s2: np.ndarray[float],
-    eps: float,
-    iterations: int,
-) -> MethodResult:
+def iteration_method(f: MultiArgFunction, s1: Vector, s2: Vector, eps: float, iterations: int) -> MethodResult:
     n = len(f)
     phi = VectorFunction([_build_phi(f, n, i, s1, s2) for i in range(n)])
     last_x = (s1 + s2) / 2.0
@@ -100,13 +90,7 @@ def iteration_method(
     return MethodResult(last_x, i)
 
 
-def newton_method(
-    f: MultiArgFunction,
-    s1: np.ndarray[float],
-    s2: np.ndarray[float],
-    eps: float,
-    iterations: int,
-) -> MethodResult:
+def newton_method(f: MultiArgFunction, s1: Vector, s2: Vector, eps: float, iterations: int) -> MethodResult:
     J = _jakobi_matrix(f)
     last_x = (s1 + s2) / 2.0
     i = 0
