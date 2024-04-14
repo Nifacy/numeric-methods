@@ -79,13 +79,5 @@ def _derivative(f: Function):
     return _df
 
 
-def error_rate(nodes: list[tuple[float, float]], f: Function, x: float) -> float:
-    n = len(nodes)
-    xs, _ = map(np.array, zip(*nodes))
-    df = f
-    for _ in range(n + 1):
-        df = _derivative(df)
-    omega = _omega(xs)
-    M = max_value(lambda x: abs(df(x)), xs[0], xs[-1])
-
-    return M / factorial(n + 1) * abs(omega(x))
+def error_rate(p: Function, f: Function, x: float) -> float:
+    return abs(p(x) - f(x))

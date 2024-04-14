@@ -1,7 +1,5 @@
 import sys
 from dataclasses import dataclass
-from math import *
-from typing import Iterable
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
@@ -157,6 +155,7 @@ class BoundNodePoint:
 # TODO: refactor this part
 class Task1Window(QWidget):
     DEFAULT_FUNCTION = "sqrt(x)"
+    DEFAULT_NODE_COORDINATES = [0.0, 1.7, 3.4, 5.1]
     INTERPLOATION_FACTORIES = {
         "Лагранжа": domain.LagrangeInterpolationPolynomial,
         "Ньютона": domain.NewtonInterpolationPolynomial,
@@ -196,7 +195,13 @@ class Task1Window(QWidget):
         self._node_list = NodeListWidget(self._f, self)
         self._node_list.on_create.connect(self._create_new_node_point)
         self._node_list.on_remove.connect(self._remove_node_point)
-        self._node_list.set_min_length(1)
+
+        for node_coord in self.DEFAULT_NODE_COORDINATES:
+            node_item = NodeItemWidget(self._f)
+            node_item.set_argument(node_coord)
+            self._node_list.add(node_item)
+
+        self._node_list.set_min_length(4)
         return self._node_list
 
     def _create_new_node_point(self, node_item: NodeItemWidget) -> None:
@@ -225,9 +230,9 @@ class Task1Window(QWidget):
 
     def _update_error_rate(self):
         x = self._accuracy_check_argument_input.value()
-        points = [bound_point.point.position for bound_point in self._node_points]
         f = self._func_graphic.function
-        error_rate = domain.error_rate(points, f, x)
+        p = self._p_graphic.function
+        error_rate = domain.error_rate(p, f, x)
         self._error_rate_label.setText(f"Погрешность: {error_rate}")
 
     def _remove_node_point(self, node_item: NodeItemWidget) -> None:
