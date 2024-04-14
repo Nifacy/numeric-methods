@@ -51,8 +51,11 @@ class BasePlotObject:
 
     def __del__(self):
         if self._plot is not None:
-            self._plot.remove()
-            self._widget.draw()
+            try:
+                self._plot.remove()
+                self._widget.draw()
+            except:
+                pass
 
 
 class OneArgFunction(BasePlotObject):
