@@ -1,6 +1,8 @@
-from typing import Callable
 from math import factorial
+
 import numpy as np
+
+from common.typing import Function
 
 
 class LagrangeInterpolationPolynomial:
@@ -61,25 +63,28 @@ def _omega(xs: list[float]):
     def _function(x: float) -> float:
         value = 1.0
         for element in xs:
-            value *= (x - element)
+            value *= x - element
         return value
+
     return _function
 
 
-def _derivative(f: Callable[[float], float]):
+def _derivative(f: Function):
     dx = 0.0001
+
     def _df(x: float) -> float:
         return (f(x + dx) - f(x)) / dx
+
     return _df
 
 
-# TODO: optimize using optimizing methods (maybe by numpy) 
-def _max_value(f: Callable[[float], float], a: float, b: float) -> float:
+# TODO: optimize using optimizing methods (maybe by numpy)
+def _max_value(f: Function, a: float, b: float) -> float:
     step = 0.01
     return max(map(f, np.arange(a, b + step, step)), default=f(a))
 
 
-def error_rate(nodes: list[tuple[float, float]], f: Callable[[float], float], x: float) -> float:
+def error_rate(nodes: list[tuple[float, float]], f: Function, x: float) -> float:
     n = len(nodes)
     xs, _ = zip(*nodes)
     df = f

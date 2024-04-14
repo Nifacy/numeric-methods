@@ -1,28 +1,32 @@
 import sys
 from math import *
-from typing import Callable
 
+from common.plot_widget.controllers import RangeSelectionController
+from common.plot_widget.controllers import ResizeController
+from common.plot_widget.objects import OneArgFunction
+from common.plot_widget.objects import RangeSelection
+from common.plot_widget.objects import VerticalLine
+from common.plot_widget.widget import PlotWidget
+from common.plot_widget.widget import add_grid
+from common.typing import Function
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (
-    QComboBox,
-    QDoubleSpinBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QSpinBox,
-    QVBoxLayout,
-    QWidget,
-)
-from sympy import lambdify, symbols, sympify
+from PyQt5.QtWidgets import QComboBox
+from PyQt5.QtWidgets import QDoubleSpinBox
+from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QSpinBox
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QWidget
+from sympy import lambdify
+from sympy import symbols
+from sympy import sympify
 
-from common.plot_widget.controllers import RangeSelectionController, ResizeController
-from common.plot_widget.objects import OneArgFunction, RangeSelection, VerticalLine
-from common.plot_widget.widget import PlotWidget, add_grid
 from lab_2.task_1 import domain
 
 
-def _expr_to_func(expr: str) -> Callable[[float], float]:
+def _expr_to_func(expr: str) -> Function:
     x = symbols("x")
     func = lambdify([x], sympify(expr), "numpy")
     return func

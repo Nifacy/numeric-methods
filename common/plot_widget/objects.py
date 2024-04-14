@@ -3,6 +3,8 @@ from typing import Any, Callable, Mapping
 import matplotlib.pyplot as plt
 import numpy as np
 
+from common.typing import Function
+
 from .widget import PlotUpdateEvent, PlotWidget
 
 Styles = Mapping[str, Any]
@@ -46,7 +48,7 @@ class BasePlotObject:
         if self._plot is not None:
             self._plot.set_visible(True)
             self._widget.draw()
-    
+
     def __del__(self):
         if self._plot is not None:
             self._plot.remove()
@@ -57,7 +59,7 @@ class OneArgFunction(BasePlotObject):
     def __init__(
         self,
         plot_widget: PlotWidget,
-        f: Callable[[float], float],
+        f: Function,
         step: float = 4.0,
         styles: Mapping[str, Any] | None = None,
     ):
@@ -85,11 +87,11 @@ class OneArgFunction(BasePlotObject):
         self._widget.on_update.connect(self._on_update)
 
     @property
-    def function(self) -> Callable[[float], float]:
+    def function(self) -> Function:
         return self._func
 
     @function.setter
-    def function(self, value: Callable[[float], float]) -> None:
+    def function(self, value: Function) -> None:
         self._func = value
         self._render_graph_dots()
         self._widget.draw()

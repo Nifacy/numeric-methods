@@ -1,12 +1,10 @@
 from itertools import product
 from math import exp
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
-
+from common.typing import MultiArgFunction
 from lab_1 import task_1
-
-MultiArgFunction = Callable[[np.ndarray[float]], float]
 
 
 class MethodResult(NamedTuple):

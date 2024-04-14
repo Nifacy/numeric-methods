@@ -1,7 +1,6 @@
-from typing import Callable
-
 import numpy as np
 
+from common.typing import Function
 from lab_1 import task_1
 
 
@@ -57,7 +56,7 @@ class MinimalSquareInterpolation:
         return f'{self.__class__.__name__}({" + ".join(expr)})'
 
 
-def square_error_rate(p: Callable[[float], float], nodes: list[tuple[float, float]]):
+def square_error_rate(p: Function, nodes: list[tuple[float, float]]):
     value = 0.0
     for x, y in nodes:
         value += (p(x) - y) ** 2

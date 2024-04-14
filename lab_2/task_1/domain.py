@@ -1,8 +1,7 @@
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
+from common.typing import Function
 from numpy import arange
-
-Function = Callable[[float], float]
 
 
 class MethodResult(NamedTuple):

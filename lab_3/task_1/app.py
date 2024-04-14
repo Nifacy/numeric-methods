@@ -1,30 +1,34 @@
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
 from math import *
-from typing import Callable, Iterable
+from typing import Iterable
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (
-    QComboBox,
-    QDoubleSpinBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QSpacerItem,
-    QSizePolicy
-)
 from PyQt5.QtCore import pyqtSignal
-from sympy import lambdify, symbols, sympify
+from PyQt5.QtWidgets import QComboBox
+from PyQt5.QtWidgets import QDoubleSpinBox
+from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSpacerItem
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QWidget
+from sympy import lambdify
+from sympy import symbols
+from sympy import sympify
 
 from common.plot_widget.controllers import ResizeController
-from common.plot_widget.objects import OneArgFunction, Point
-from common.plot_widget.widget import PlotWidget, add_grid
+from common.plot_widget.objects import OneArgFunction
+from common.plot_widget.objects import Point
+from common.plot_widget.widget import PlotWidget
+from common.plot_widget.widget import add_grid
+from common.typing import Function
 from lab_3.task_1 import domain
 
-def _expr_to_func(expr: str) -> Callable[[float], float]:
+
+def _expr_to_func(expr: str) -> Function:
     x = symbols("x")
     func = lambdify([x], sympify(expr), "numpy")
     return func
@@ -38,7 +42,7 @@ class NodeItemWidget(QWidget):
 
     on_update = pyqtSignal(UpdateEvent)
 
-    def __init__(self, f: Callable[[float], float], parent: QWidget | None = None):
+    def __init__(self, f: Function, parent: QWidget | None = None):
         super().__init__(parent)
         self._f = f
         self._layout = QHBoxLayout(self)
@@ -62,11 +66,11 @@ class NodeItemWidget(QWidget):
         return argument_input
 
     @property
-    def function(self) -> Callable[[float], float]:
+    def function(self) -> Function:
         return self._f
-    
+
     @function.setter
-    def function(self, value: Callable[[float], float]) -> None:
+    def function(self, value: Function) -> None:
         self._f = value
         self._update()
 
@@ -87,7 +91,7 @@ class NodeListWidget(QWidget):
     on_create = pyqtSignal(NodeItemWidget)
     on_remove = pyqtSignal(NodeItemWidget)
 
-    def __init__(self, f: Callable[[float], float], parent: QWidget | None = None):
+    def __init__(self, f: Function, parent: QWidget | None = None):
         super().__init__(parent)
         self._f = f
         self._min_list_length = 0
@@ -103,7 +107,7 @@ class NodeListWidget(QWidget):
         self._layout.addWidget(node_item)
         self._nodes.append(node_item)
         self.on_create.emit(node_item)
-    
+
     def remove(self, index_or_item: NodeItemWidget | int) -> NodeItemWidget:
         if isinstance(index_or_item, NodeItemWidget):
             item = index_or_item
@@ -127,10 +131,10 @@ class NodeListWidget(QWidget):
 
     def __iter__(self) -> Iterable[NodeItemWidget]:
         return iter(self._nodes)
-    
+
     def __len__(self) -> int:
         return len(self._nodes)
-    
+
     def _remove_last_item(self):
         if self._nodes and len(self._nodes) > self._min_list_length:
             self.remove(-1)
@@ -151,7 +155,6 @@ class NodeListWidget(QWidget):
         self._add_button.clicked.connect(self._add_new_item)
 
         return self._control_layout
-
 
 
 @dataclass(frozen=True)
@@ -186,14 +189,16 @@ class Task1Window(QWidget):
         self._input_layout.addLayout(method_layout)
         self._input_layout.addLayout(self._init_accuraccy_check_argument_input())
         self._input_layout.addWidget(self._error_rate_label)
-        self._input_layout.addSpacerItem(QSpacerItem(
-            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding
-        ))
+        self._input_layout.addSpacerItem(
+            QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )
 
         self._main_layout = QHBoxLayout()
         self._main_layout.addWidget(self._plot_widget, 5)
         self._main_layout.addLayout(self._input_layout, 4)
-        self._accuracy_check_argument_input.valueChanged.connect(self._update_error_rate)
+        self._accuracy_check_argument_input.valueChanged.connect(
+            self._update_error_rate
+        )
 
         self._update_error_rate()
 
@@ -222,10 +227,12 @@ class Task1Window(QWidget):
         node_item.on_update.connect(_update_point)
         node_item.on_update.connect(self._update_interpolation_function)
         node_item.on_update.connect(self._update_error_rate)
-        self._node_points.append(BoundNodePoint(
-            point=node_point,
-            node=node_item,
-        ))
+        self._node_points.append(
+            BoundNodePoint(
+                point=node_point,
+                node=node_item,
+            )
+        )
         self._update_interpolation_function()
 
     def _update_error_rate(self):
@@ -261,7 +268,7 @@ class Task1Window(QWidget):
             styles={
                 "color": "orange",
                 "linewidth": 1,
-            }
+            },
         )
 
         self._resize_controller = ResizeController(self._plot_widget)
@@ -291,7 +298,9 @@ class Task1Window(QWidget):
         self._method_layout.addWidget(self._method_preifx)
         self._method_layout.addWidget(self._method_combo_box, 1)
 
-        self._method_combo_box.currentTextChanged.connect(self._update_interpolation_function)
+        self._method_combo_box.currentTextChanged.connect(
+            self._update_interpolation_function
+        )
         self._method_combo_box.currentTextChanged.connect(self._update_error_rate)
 
         return self._method_layout
@@ -305,15 +314,18 @@ class Task1Window(QWidget):
 
     def _init_accuraccy_check_argument_input(self):
         self._accuracy_check_argument_layout = QHBoxLayout()
-        self._accuracy_check_argument_label = QLabel('X* = ')
+        self._accuracy_check_argument_label = QLabel("X* = ")
         self._accuracy_check_argument_input = QDoubleSpinBox()
         self._accuracy_check_argument_input.setDecimals(3)
         self._accuracy_check_argument_input.setValue(0)
         self._accuracy_check_argument_input.setSingleStep(0.01)
-        self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_label)
-        self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_input, 1)
+        self._accuracy_check_argument_layout.addWidget(
+            self._accuracy_check_argument_label
+        )
+        self._accuracy_check_argument_layout.addWidget(
+            self._accuracy_check_argument_input, 1
+        )
         return self._accuracy_check_argument_layout
-
 
     def _init_error_label(self):
         self._error_label = QLabel("Ошибка: Функция введена неверно")
