@@ -15,9 +15,6 @@ from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QSpacerItem
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
-from sympy import lambdify
-from sympy import symbols
-from sympy import sympify
 
 from common.plot_widget.controllers import ResizeController
 from common.plot_widget.objects import OneArgFunction
@@ -25,13 +22,8 @@ from common.plot_widget.objects import Point
 from common.plot_widget.widget import PlotWidget
 from common.plot_widget.widget import add_grid
 from common.typing import Function
+from common.utils import function_from_expr
 from lab_3.task_1 import domain
-
-
-def _expr_to_func(expr: str) -> Function:
-    x = symbols("x")
-    func = lambdify([x], sympify(expr), "numpy")
-    return func
 
 
 class NodeItemWidget(QWidget):
@@ -44,17 +36,19 @@ class NodeItemWidget(QWidget):
 
     def __init__(self, f: Function, parent: QWidget | None = None):
         super().__init__(parent)
+
         self._f = f
-        self._layout = QHBoxLayout(self)
         self._argument_label = QLabel()
         self._argument_input = self._get_argument_input_widget()
         self._value_label = QLabel()
 
+        self._layout = QHBoxLayout(self)
         self._layout.addWidget(self._argument_label)
         self._layout.addWidget(self._argument_input)
         self._layout.addWidget(self._value_label, 1)
 
         self._argument_input.valueChanged.connect(self._update)
+
         self._update()
 
     @classmethod
@@ -79,6 +73,9 @@ class NodeItemWidget(QWidget):
         x = self._argument_input.value()
         y = self._f(x)
         return x, y
+    
+    def set_argument(self, x: float) -> None:
+        self._argument_input.setValue(x)
 
     def _update(self) -> None:
         x, y = self.position
@@ -97,14 +94,14 @@ class NodeListWidget(QWidget):
         self._min_list_length = 0
         self._nodes = []
 
-        self._main_layout = QVBoxLayout(self)
-        self._layout = QVBoxLayout()
+        self._nodes_layout = QVBoxLayout()
 
-        self._main_layout.addLayout(self._layout)
+        self._main_layout = QVBoxLayout(self)
+        self._main_layout.addLayout(self._nodes_layout)
         self._main_layout.addLayout(self._init_control_layout())
 
     def add(self, node_item: NodeItemWidget) -> None:
-        self._layout.addWidget(node_item)
+        self._nodes_layout.addWidget(node_item)
         self._nodes.append(node_item)
         self.on_create.emit(node_item)
 
@@ -118,7 +115,7 @@ class NodeListWidget(QWidget):
             raise ValueError("Amount of nodes can't be lower then minimum")
 
         self._nodes.remove(item)
-        self._layout.removeWidget(item)
+        self._nodes_layout.removeWidget(item)
         self.on_remove.emit(item)
 
         return item
@@ -128,12 +125,6 @@ class NodeListWidget(QWidget):
 
         while len(self._nodes) < self._min_list_length:
             self._add_new_item()
-
-    def __iter__(self) -> Iterable[NodeItemWidget]:
-        return iter(self._nodes)
-
-    def __len__(self) -> int:
-        return len(self._nodes)
 
     def _remove_last_item(self):
         if self._nodes and len(self._nodes) > self._min_list_length:
@@ -164,7 +155,6 @@ class BoundNodePoint:
 
 
 # TODO: refactor this part
-# TODO: fix bug with same point values (maybe by automate increasing value)
 class Task1Window(QWidget):
     DEFAULT_FUNCTION = "sqrt(x)"
     INTERPLOATION_FACTORIES = {
@@ -174,8 +164,10 @@ class Task1Window(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
         self._node_points: list[BoundNodePoint] = []
-        self._f = _expr_to_func(self.DEFAULT_FUNCTION)
+        self._f = function_from_expr(self.DEFAULT_FUNCTION)
+
         self.setLayout(self._init_objects())
 
     def _init_objects(self):
@@ -189,16 +181,12 @@ class Task1Window(QWidget):
         self._input_layout.addLayout(method_layout)
         self._input_layout.addLayout(self._init_accuraccy_check_argument_input())
         self._input_layout.addWidget(self._error_rate_label)
-        self._input_layout.addSpacerItem(
-            QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        )
+        self._input_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
         self._main_layout = QHBoxLayout()
         self._main_layout.addWidget(self._plot_widget, 5)
         self._main_layout.addLayout(self._input_layout, 4)
-        self._accuracy_check_argument_input.valueChanged.connect(
-            self._update_error_rate
-        )
+        self._accuracy_check_argument_input.valueChanged.connect(self._update_error_rate)
 
         self._update_error_rate()
 
@@ -250,7 +238,7 @@ class Task1Window(QWidget):
 
     def _init_plot_widget(self):
         self._plot_widget = PlotWidget(self, 30)
-        f = _expr_to_func(self.DEFAULT_FUNCTION)
+        f = function_from_expr(self.DEFAULT_FUNCTION)
         p = domain.NewtonInterpolationPolynomial([])
 
         self._func_graphic = OneArgFunction(
@@ -298,9 +286,7 @@ class Task1Window(QWidget):
         self._method_layout.addWidget(self._method_preifx)
         self._method_layout.addWidget(self._method_combo_box, 1)
 
-        self._method_combo_box.currentTextChanged.connect(
-            self._update_interpolation_function
-        )
+        self._method_combo_box.currentTextChanged.connect(self._update_interpolation_function)
         self._method_combo_box.currentTextChanged.connect(self._update_error_rate)
 
         return self._method_layout
@@ -309,6 +295,16 @@ class Task1Window(QWidget):
         method_name = self._method_combo_box.currentText()
         interpolation_factory = self.INTERPLOATION_FACTORIES[method_name]
         points = [bound_point.point.position for bound_point in self._node_points]
+
+        # check that points don't have similar x coordinate
+        x_coords = set()
+        for index, point in enumerate(points):
+            if point[0] in x_coords:
+                self._node_points[index].node.set_argument(point[0] + 0.01)
+                return
+
+            x_coords.add(point[0])
+
         p = interpolation_factory(points)
         self._p_graphic.function = p
 
@@ -319,12 +315,8 @@ class Task1Window(QWidget):
         self._accuracy_check_argument_input.setDecimals(3)
         self._accuracy_check_argument_input.setValue(0)
         self._accuracy_check_argument_input.setSingleStep(0.01)
-        self._accuracy_check_argument_layout.addWidget(
-            self._accuracy_check_argument_label
-        )
-        self._accuracy_check_argument_layout.addWidget(
-            self._accuracy_check_argument_input, 1
-        )
+        self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_label)
+        self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_input, 1)
         return self._accuracy_check_argument_layout
 
     def _init_error_label(self):

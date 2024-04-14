@@ -26,7 +26,7 @@ def max_value(
 
 def _max_value_1d(f: Function, a: float, b: float) -> float:
     step = 0.001
-    return max(f(x) for x in np.arange(a, b, step))
+    return max((f(x) for x in np.arange(a, b, step)), default=0.0)
 
 
 def _max_value_2d(f: MultiArgFunction, a: Vector, b: Vector) -> float:
