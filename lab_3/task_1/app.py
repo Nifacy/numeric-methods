@@ -1,7 +1,5 @@
-import sys
 from dataclasses import dataclass
 
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QDoubleSpinBox
@@ -21,7 +19,7 @@ from common.plot_widget.widget import PlotWidget
 from common.plot_widget.widget import add_grid
 from common.typing import Function
 from common.utils import function_from_expr
-from lab_3.task_1 import domain
+from lab_3.task_1 import lib
 
 
 class NodeItemWidget(QWidget):
@@ -153,12 +151,13 @@ class BoundNodePoint:
 
 
 # TODO: refactor this part
-class Task1Window(QWidget):
+class Window(QWidget):
     DEFAULT_FUNCTION = "sqrt(x)"
     DEFAULT_NODE_COORDINATES = [0.0, 1.7, 3.4, 5.1]
+    DEFAULT_TEST_COORDINATE = 3.0
     INTERPLOATION_FACTORIES = {
-        "Лагранжа": domain.LagrangeInterpolationPolynomial,
-        "Ньютона": domain.NewtonInterpolationPolynomial,
+        "Лагранжа": lib.LagrangeInterpolationPolynomial,
+        "Ньютона": lib.NewtonInterpolationPolynomial,
     }
 
     def __init__(self, parent=None):
@@ -232,7 +231,7 @@ class Task1Window(QWidget):
         x = self._accuracy_check_argument_input.value()
         f = self._func_graphic.function
         p = self._p_graphic.function
-        error_rate = domain.error_rate(p, f, x)
+        error_rate = lib.error_rate(p, f, x)
         self._error_rate_label.setText(f"Погрешность: {error_rate}")
 
     def _remove_node_point(self, node_item: NodeItemWidget) -> None:
@@ -244,7 +243,7 @@ class Task1Window(QWidget):
     def _init_plot_widget(self):
         self._plot_widget = PlotWidget(self, 30)
         f = function_from_expr(self.DEFAULT_FUNCTION)
-        p = domain.NewtonInterpolationPolynomial([])
+        p = lib.NewtonInterpolationPolynomial([])
 
         self._func_graphic = OneArgFunction(
             plot_widget=self._plot_widget,
@@ -318,7 +317,7 @@ class Task1Window(QWidget):
         self._accuracy_check_argument_label = QLabel("X* = ")
         self._accuracy_check_argument_input = QDoubleSpinBox()
         self._accuracy_check_argument_input.setDecimals(3)
-        self._accuracy_check_argument_input.setValue(0)
+        self._accuracy_check_argument_input.setValue(self.DEFAULT_TEST_COORDINATE)
         self._accuracy_check_argument_input.setSingleStep(0.01)
         self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_label)
         self._accuracy_check_argument_layout.addWidget(self._accuracy_check_argument_input, 1)
@@ -330,10 +329,3 @@ class Task1Window(QWidget):
         self._error_label.hide()
 
         return self._error_label
-
-
-app = QtWidgets.QApplication(sys.argv)
-w = Task1Window()
-w.resize(800, 500)
-w.show()
-app.exec_()
