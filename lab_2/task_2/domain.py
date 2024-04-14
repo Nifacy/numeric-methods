@@ -1,8 +1,8 @@
-from itertools import product
 from math import exp
 from typing import NamedTuple
 
 import numpy as np
+from common.linalg import max_value
 from common.typing import Matrix
 from common.typing import MultiArgFunction
 from common.typing import Vector
@@ -29,11 +29,6 @@ def _sign(x: float) -> float:
     if x < 0.0:
         return -1.0
     return 1.0
-
-
-def _max_value(f: MultiArgFunction, a: Vector, b: Vector) -> float:
-    ranges = [np.arange(i, j, 0.01) for i, j in zip(a, b)]
-    return max(map(f, product(*ranges)))
 
 
 def _partial_derivative(f: MultiArgFunction, arg_index: int) -> MultiArgFunction:
@@ -65,7 +60,7 @@ def _build_phi(f: VectorFunction, n: int, index: int, s1: Vector, s2: Vector) ->
     df = _derivative(f_el, n)
     pdf = _partial_derivative(f_el, index)
     f_sign = _sign(pdf(s1))
-    mx = _max_value(lambda x: _norm(df(x)), s1, s2)
+    mx = max_value(lambda x: _norm(df(x)), s1, s2)
     return lambda x: x[index] - (f_sign / mx) * f_el(x)
 
 

@@ -2,6 +2,7 @@ from math import factorial
 
 import numpy as np
 
+from common.linalg import max_value
 from common.typing import Function
 
 
@@ -78,19 +79,13 @@ def _derivative(f: Function):
     return _df
 
 
-# TODO: optimize using optimizing methods (maybe by numpy)
-def _max_value(f: Function, a: float, b: float) -> float:
-    step = 0.01
-    return max(map(f, np.arange(a, b + step, step)), default=f(a))
-
-
 def error_rate(nodes: list[tuple[float, float]], f: Function, x: float) -> float:
     n = len(nodes)
-    xs, _ = zip(*nodes)
+    xs, _ = map(np.array, zip(*nodes))
     df = f
     for _ in range(n + 1):
         df = _derivative(df)
     omega = _omega(xs)
-    M = _max_value(lambda x: abs(df(x)), xs[0], xs[-1])
+    M = max_value(lambda x: abs(df(x)), xs[0], xs[-1])
 
     return M / factorial(n + 1) * abs(omega(x))
