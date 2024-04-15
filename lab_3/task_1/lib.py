@@ -1,8 +1,3 @@
-from math import factorial
-
-import numpy as np
-
-from common.linalg import max_value
 from common.typing import Function
 
 
@@ -58,25 +53,6 @@ class NewtonInterpolationPolynomial:
             value += coef
 
         return value
-
-
-def _omega(xs: list[float]):
-    def _function(x: float) -> float:
-        value = 1.0
-        for element in xs:
-            value *= x - element
-        return value
-
-    return _function
-
-
-def _derivative(f: Function):
-    dx = 0.0001
-
-    def _df(x: float) -> float:
-        return (f(x + dx) - f(x)) / dx
-
-    return _df
 
 
 def error_rate(p: Function, f: Function, x: float) -> float:
