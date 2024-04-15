@@ -1,58 +1,49 @@
+from itertools import product
 import numpy as np
 
-from common.typing import Function
+from common.typing import Function, Matrix, Vector
 from lab_1 import task_1
 
 
 class MinimalSquareInterpolation:
     def __init__(self, n: int, nodes: list[tuple[float, float]]) -> None:
-        A, b = self._get_normal_system_coefs(nodes, n)
+        x, y = map(np.array, zip(*nodes))
+        Phi = self._get_phi_matrix(x, n)
+        self._weights = self._get_weights(Phi, y)
+
+    @classmethod
+    def _get_phi_matrix(cls, x: Vector, n: int) -> Matrix:
+        phi = lambda i, x: x ** i
+        Phi = np.zeros((len(x), n + 1))
+
+        for i, j in product(range(len(x)), range(n + 1)):
+            Phi[i, j] = phi(j, x[i])
+
+        return Phi
+
+    @classmethod
+    def _get_weights(self, Phi: Matrix, y: Vector) -> Vector:
+        A = np.matmul(Phi.T, Phi)
+        b = np.matmul(Phi.T, y.reshape((-1, 1)))
+        b = np.array(b.flat)
         l, u, p = task_1.lu_decompose(A)
-        self._coef = task_1.solve_system(l, u, p, b)
-
-    @classmethod
-    def _get_normal_system_coefs(cls, nodes, n):
-        A = np.zeros((n + 1, n + 1))
-        b = np.zeros(n + 1)
-
-        for k in range(n + 1):
-            for i in range(n + 1):
-                A[k, i] = cls._get_a_coef(nodes, k, i)
-            b[k] = cls._get_b_coef(nodes, k)
-
-        return A, b
-
-    @classmethod
-    def _get_a_coef(cls, nodes, k, i):
-        value = 0.0
-        N = len(nodes)
-        for j in range(N):
-            value += nodes[j][0] ** (k + i)
-        return value
-
-    @classmethod
-    def _get_b_coef(cls, nodes, k):
-        value = 0.0
-        N = len(nodes)
-        for j in range(N):
-            value += nodes[j][1] * nodes[j][0] ** k
-        return value
+        return task_1.solve_system(l, u, p, b)
 
     def __call__(self, x: float) -> float:
         value = 0.0
-        for i, coef in enumerate(self._coef):
-            value += coef * (x**i)
+        for i, w in enumerate(self._weights):
+            value += w * (x**i)
         return value
 
     def __repr__(self) -> str:
         expr = []
-        for i, coef in enumerate(self._coef):
+        for i, w in enumerate(self._weights):
             if i == 0:
-                expr.append(str(coef))
+                expr.append(str(w))
             elif i == 1:
-                expr.append(f"{coef} * x")
+                expr.append(f"{w} * x")
             else:
-                expr.append(f"{coef} * (x ^ {i})")
+                expr.append(f"{w} * (x ^ {i})")
         return f'{self.__class__.__name__}({" + ".join(expr)})'
 
 
