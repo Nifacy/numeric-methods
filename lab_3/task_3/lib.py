@@ -5,7 +5,7 @@ from common.typing import Function, Matrix, Vector
 from lab_1 import task_1
 
 
-class MinimalSquareInterpolation:
+class MinimalSquareApproximation:
     def __init__(self, n: int, nodes: list[tuple[float, float]]) -> None:
         x, y = map(np.array, zip(*nodes))
         Phi = self._get_phi_matrix(x, n)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         (8.5, 2.9155),
     ]
 
-    p = MinimalSquareInterpolation(2, nodes)
+    p = MinimalSquareApproximation(2, nodes)
     print(p)
     print(p(3.4))
     print(square_error_rate(p, nodes))

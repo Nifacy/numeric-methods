@@ -182,10 +182,10 @@ class Window(QWidget):
     def _update_graphic(self, event: NodesChanged) -> None:
         nodes = sorted(event.nodes, key=lambda p: p[0])
         try:
-            p = lib.MinimalSquareInterpolation(1, nodes)
+            p = lib.MinimalSquareApproximation(1, nodes)
             self._p1_graphic.function = p
 
-            p2 = lib.MinimalSquareInterpolation(2, nodes)
+            p2 = lib.MinimalSquareApproximation(2, nodes)
             self._p2_graphic.function = p2
         except:
             pass
