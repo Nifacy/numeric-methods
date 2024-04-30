@@ -1,8 +1,7 @@
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
-from numpy import arange
-
-Function = Callable[[float], float]
+from common.linalg import max_value
+from common.typing import Function
 
 
 class MethodResult(NamedTuple):
@@ -23,14 +22,9 @@ def _sign(x: float) -> float:
     return 1.0
 
 
-def _max_value(f: Function, a: float, b: float) -> float:
-    step = 0.001
-    return max(f(x) for x in arange(a, b, step))
-
-
 def _build_phi(f: Function, a: float, b: float) -> Function:
     df = _derivative(f)
-    max_df = _max_value(lambda x: abs(df(x)), a, b)
+    max_df = max_value(lambda x: abs(df(x)), a, b)
     sign_f = _sign(df(a))
     return lambda x: x - (sign_f / max_df) * f(x)
 
@@ -39,7 +33,7 @@ def iterations_method(f: Function, a: float, b: float, eps: float, iterations: i
     x0 = (a + b) / 2.0
     phi = _build_phi(f, a, b)
     dphi = _derivative(phi)
-    q = _max_value(lambda x: abs(dphi(x)), a, b)
+    q = max_value(lambda x: abs(dphi(x)), a, b)
 
     last_x = x0
     i = 0

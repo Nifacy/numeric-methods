@@ -1,5 +1,5 @@
 [tool.black]
-line-length = 100
+line-length = 999
 exclude = '''
 (
   /(
@@ -9,3 +9,6 @@ exclude = '''
   )/
 )
 '''
+
+[tool.isort]
+force_single_line = true

@@ -1,11 +1,14 @@
 import argparse
-import sys
 import pathlib
+import sys
+
 import numpy as np
-from typing import TextIO
+
+from common.matrix_utils import read_matrix, read_vector
+from common.typing import Matrix, Vector
 
 
-def forward_step(m: np.ndarray[float], k: int) -> tuple[int, int, list[float]]:
+def forward_step(m: Matrix, k: int) -> tuple[int, int, list[float]]:
     n = m.shape[0]
 
     # find element with maximum square to avoid small dividers
@@ -35,7 +38,7 @@ def forward_step(m: np.ndarray[float], k: int) -> tuple[int, int, list[float]]:
     return k, swap_index, coef
 
 
-def lu_decompose(a: np.ndarray[float]) -> tuple[np.ndarray[float], np.ndarray[float], np.ndarray[float]]:
+def lu_decompose(a: Matrix) -> tuple[Matrix, Matrix, Matrix]:
     n = a.shape[0]
 
     p = np.eye(n)
@@ -56,7 +59,7 @@ def lu_decompose(a: np.ndarray[float]) -> tuple[np.ndarray[float], np.ndarray[fl
     return l, u, p
 
 
-def solve_with_l(l: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float]:
+def solve_with_l(l: Matrix, b: Vector) -> Vector:
     n = l.shape[0]
     x = np.zeros_like(b)
 
@@ -69,7 +72,7 @@ def solve_with_l(l: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float
     return x
 
 
-def solve_with_u(u: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float]:
+def solve_with_u(u: Matrix, b: Vector) -> Vector:
     n = u.shape[0]
     x = np.zeros_like(b)
 
@@ -82,18 +85,13 @@ def solve_with_u(u: np.ndarray[float], b: np.ndarray[float]) -> np.ndarray[float
     return x
 
 
-def solve_system(
-    l: np.ndarray[float],
-    u: np.ndarray[float],
-    p: np.ndarray[float],
-    b: np.ndarray[float],
-) -> np.ndarray[float]:
+def solve_system(l: Matrix, u: Matrix, p: Matrix, b: Vector) -> Vector:
     z = solve_with_l(l, np.dot(p, b))
     x = solve_with_u(u, z)
     return x
 
 
-def count_permutation_determinant(p: np.ndarray[float]) -> float:
+def count_permutation_determinant(p: Matrix) -> float:
     n = p.shape[0]
     indexes = np.zeros(n, dtype=int)
     d = 1.0
@@ -119,7 +117,7 @@ def count_permutation_determinant(p: np.ndarray[float]) -> float:
     return d
 
 
-def determinant(l: np.ndarray[float], u: np.ndarray[float], p: np.ndarray[float]) -> float:
+def determinant(l: Matrix, u: Matrix, p: Matrix) -> float:
     d = 1.0
     n = l.shape[0]
 
@@ -129,7 +127,7 @@ def determinant(l: np.ndarray[float], u: np.ndarray[float], p: np.ndarray[float]
     return count_permutation_determinant(p) * d
 
 
-def inverse_matrix(l: np.ndarray[float], u: np.ndarray[float], p: np.ndarray[float]) -> np.ndarray[float]:
+def inverse_matrix(l: Matrix, u: Matrix, p: Matrix) -> Matrix:
     n = l.shape[0]
     xs = []
     b = np.zeros(n)
@@ -142,23 +140,12 @@ def inverse_matrix(l: np.ndarray[float], u: np.ndarray[float], p: np.ndarray[flo
     return np.array(xs).T
 
 
-def print_matrix(matrix: np.ndarray[float]) -> None:
+def print_matrix(matrix: Matrix) -> None:
     f = np.vectorize(lambda x: round(x, 5))
     print(f(matrix))
 
 
 # user interface
-
-
-def read_matrix(m: int, n: int, input_stream: TextIO) -> np.ndarray[float]:
-    rows = []
-    for _ in range(m):
-        rows.append(list(map(float, input_stream.readline().strip().split())))
-    return np.array(rows)
-
-
-def read_vector(n: int, input_stream: TextIO) -> np.ndarray[float]:
-    return np.array(list(map(float, input_stream.readline().strip().split())))
 
 
 def check_determinant(d: float) -> None:
@@ -185,7 +172,7 @@ def _dialog_input():
 
 
 def _file_input(path: pathlib.Path):
-    with path.open('r', encoding='utf-8') as file:
+    with path.open("r", encoding="utf-8") as file:
         n = int(file.readline().strip())
         A = read_matrix(n, n, file)
         b = read_vector(n, file)
