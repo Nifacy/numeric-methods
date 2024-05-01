@@ -54,7 +54,7 @@ def _read_tridiagonal_matrix(n: int, input_stream: TextIO) -> Matrix:
     a = np.zeros((n, 3))
 
     for i in range(n):
-        values = list(map(int, input_stream.readline().split()))
+        values = list(map(float, input_stream.readline().split()))
 
         if i == 0:
             a[i, 1:] = values
@@ -106,6 +106,11 @@ def _main():
         A, b = _dialog_input()
     else:
         A, b = _file_input(args.input_file)
+
+    print('A:')
+    print(A)
+    print("b:")
+    print(b)
 
     result = solve_system(A, b)
     print(f"Result: {result}")
