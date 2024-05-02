@@ -33,3 +33,9 @@ def _max_value_2d(f: MultiArgFunction, a: Vector, b: Vector) -> float:
     step = 0.01
     ranges = [np.arange(i, j, step) for i, j in zip(a, b)]
     return max(map(f, product(*ranges)))
+
+
+def derivative(f: Function, dx: float = 0.0001) -> Function:
+    def df(x: float):
+        return (f(x + dx) - f(x)) / dx
+    return df
