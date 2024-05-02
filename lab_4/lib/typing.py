@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import NamedTuple
 
 import numpy as np
 
@@ -19,8 +20,7 @@ class DiffEquation:
     f: Function
 
 
-@dataclass
-class BoundaryCondition:
+class BoundaryCondition(NamedTuple):
     """
     Представляет условие для краевой задачи из ДУ, имеющее вид
     `a * y' + b * y + c = 0`
