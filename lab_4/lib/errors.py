@@ -27,4 +27,4 @@ def runge_romberg_error(step_1: Vector, step_2: Vector, p: float) -> Vector:
     for i, (a, b) in enumerate(zip(step_1, step_2[::2])):
         answer[i] = (a - b) / (2.0**p - 1.0)
 
-    return answer
+    return np.abs(answer)
