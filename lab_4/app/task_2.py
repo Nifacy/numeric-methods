@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QDoubleSpinBox
@@ -16,19 +13,13 @@ import sys
 
 import numpy as np
 
-from common.plot_widget.controllers import ResizeController
-from common.plot_widget.objects import OneArgFunction
-from common.plot_widget.objects import Point
 from common.plot_widget.widget import PlotWidget
-from common.plot_widget.widget import add_grid
-from common.typing import Function
 from common.utils import function_from_expr
 from lab_4.lib.boundary_task import shooting_method, finite_diff_method
 from lab_4.lib.errors import max_absolute_error, runge_romberg_error
 from lab_4.lib.typing import BoundaryCondition, DiffEquation, Grid
 
 
-# TODO: fix bug with reset xlim, ylim
 class Window(QWidget):
     METHOD_BY_ALIAS = {
         "Метод стрельбы": shooting_method,
@@ -52,6 +43,7 @@ class Window(QWidget):
         self.setLayout(self._init_objects())
 
         self._start_button.clicked.connect(self._run_method)
+        self._run_method()
 
     def _init_objects(self):
         self._main_layout = QHBoxLayout()
@@ -269,6 +261,6 @@ class Window(QWidget):
 
 app = QtWidgets.QApplication(sys.argv)
 w = Window()
-w.resize(800, 500)
+w.resize(980, 420)
 w.show()
 app.exec_()

@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QDoubleSpinBox
@@ -16,12 +13,7 @@ import sys
 
 import numpy as np
 
-from common.plot_widget.controllers import ResizeController
-from common.plot_widget.objects import OneArgFunction
-from common.plot_widget.objects import Point
 from common.plot_widget.widget import PlotWidget
-from common.plot_widget.widget import add_grid
-from common.typing import Function
 from common.utils import function_from_expr
 from lab_4.lib.ode import euler, runge_kutta, adams
 from lab_4.lib.errors import max_absolute_error, runge_romberg_error
@@ -55,6 +47,7 @@ class Window(QWidget):
         self.setLayout(self._init_objects())
 
         self._start_button.clicked.connect(self._run_method)
+        self._run_method()
 
     def _init_objects(self):
         self._main_layout = QHBoxLayout()
@@ -134,30 +127,6 @@ class Window(QWidget):
 
         return self._start_value_layout
 
-    # def _init_cond_1_layout(self):
-    #     self._cond_1_a_layout, _, self._cond_1_a = self._init_float_input("a₁:", step=0.01)
-    #     self._cond_1_b_layout, _, self._cond_1_b = self._init_float_input("b₁:", step=0.01)
-    #     self._cond_1_c_layout, _, self._cond_1_c = self._init_float_input("c₁:", step=0.01)
-
-    #     self._cond_1_layout = QHBoxLayout()
-    #     self._cond_1_layout.addLayout(self._cond_1_a_layout)
-    #     self._cond_1_layout.addLayout(self._cond_1_b_layout)
-    #     self._cond_1_layout.addLayout(self._cond_1_c_layout)
-
-    #     return self._cond_1_layout
-
-    # def _init_cond_2_layout(self):
-    #     self._cond_2_a_layout, _, self._cond_2_a = self._init_float_input("a₂:", step=0.01)
-    #     self._cond_2_b_layout, _, self._cond_2_b = self._init_float_input("b₂:", step=0.01)
-    #     self._cond_2_c_layout, _, self._cond_2_c = self._init_float_input("c₂:", step=0.01)
-
-    #     self._cond_2_layout = QHBoxLayout()
-    #     self._cond_2_layout.addLayout(self._cond_2_a_layout)
-    #     self._cond_2_layout.addLayout(self._cond_2_b_layout)
-    #     self._cond_2_layout.addLayout(self._cond_2_c_layout)
-
-    #     return self._cond_2_layout
-
     def _init_float_input(self, label, min_value=None, max_value=None, step=None, default_value=None):
         prefix = QLabel(label)
         input_field = QDoubleSpinBox()
@@ -183,9 +152,7 @@ class Window(QWidget):
     
     def _init_graph_layout(self):
         self._func_graph = PlotWidget(scale=30, auto_update=False)
-        # add_grid(self._func_graph)
         self._error_graph = PlotWidget(scale=30, auto_update=False)
-        # add_grid(self._error_graph)
 
         self._graph_layout = QHBoxLayout()
         self._graph_layout.addWidget(self._func_graph)
@@ -277,6 +244,6 @@ class Window(QWidget):
 
 app = QtWidgets.QApplication(sys.argv)
 w = Window()
-w.resize(800, 500)
+w.resize(980, 420)
 w.show()
 app.exec_()
