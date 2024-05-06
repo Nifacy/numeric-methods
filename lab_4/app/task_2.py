@@ -22,8 +22,8 @@ from lab_4.lib.typing import BoundaryCondition, DiffEquation, Grid
 
 class Window(QWidget):
     METHOD_BY_ALIAS = {
-        "Метод стрельбы": shooting_method,
-        "Метод конечных разностей": finite_diff_method,
+        "Метод стрельбы": (shooting_method, 4),
+        "Метод конечных разностей": (finite_diff_method, 2),
     }
 
     DEFAULT_VALUES = {
@@ -183,7 +183,7 @@ class Window(QWidget):
     
     def _run_method(self):
         method_alias = self._method_combo_box.currentText()
-        method = self.METHOD_BY_ALIAS[method_alias]
+        method, p = self.METHOD_BY_ALIAS[method_alias]
 
         f = function_from_expr(self._y_input.text() or "0")
         eq = DiffEquation(
@@ -216,7 +216,7 @@ class Window(QWidget):
         result_2 = method(eq, cond_1, cond_2, grid_2)
         actual = np.array([f(x) for x in grid.range])
         abs_error = max_absolute_error(actual, result[1])
-        runge_error = runge_romberg_error(result[1], result_2[1], 1)
+        runge_error = runge_romberg_error(result[1], result_2[1], p)
 
         self._func_graph.axes.clear()
         self._func_graph.axes.plot(

@@ -23,9 +23,9 @@ from lab_4.lib.typing import DiffEquation, Grid
 # TODO: fix bug with reset xlim, ylim
 class Window(QWidget):
     METHOD_BY_ALIAS = {
-        "Эйлера": euler,
-        "Рунге-Кутта": runge_kutta,
-        "Адамса": adams,
+        "Эйлера": (euler, 1),
+        "Рунге-Кутта": (runge_kutta, 4),
+        "Адамса": (adams, 4),
     }
 
     DEFAULT_VALUES = {
@@ -172,7 +172,7 @@ class Window(QWidget):
     
     def _run_method(self):
         method_alias = self._method_combo_box.currentText()
-        method = self.METHOD_BY_ALIAS[method_alias]
+        method, p = self.METHOD_BY_ALIAS[method_alias]
 
         f = function_from_expr(self._y_input.text() or "0")
         eq = DiffEquation(
@@ -198,7 +198,7 @@ class Window(QWidget):
         result_2 = method(eq, y0, grid_2)
         actual = np.array([f(x) for x in grid.range])
         abs_error = max_absolute_error(actual, result[1])
-        runge_error = runge_romberg_error(result[1], result_2[1], 1)
+        runge_error = runge_romberg_error(result[1], result_2[1], p)
 
         self._func_graph.axes.clear()
         self._func_graph.axes.plot(
