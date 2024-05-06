@@ -39,6 +39,32 @@ def euler(eq: DiffEquation, y_0: Vector, grid: Grid) -> Matrix:
     return answer
 
 
+def euler_with_continuations(eq: DiffEquation, y_0: Vector, grid: Grid) -> Matrix:
+    """
+    Решение обыкновенного дифференциального уравнения
+    с помощью метода Эйлера с продолжениями.
+
+    Возвращает матрицу `(3, n)`, где `n` - размер сетки.
+    Возвращаемая матрица имеет структуру `(x y y')`
+    """
+
+    P = euler(eq, y_0, grid)
+
+    F = convert_to_system_function(eq)
+    X = grid.range
+    Y = y_0
+
+    answer = np.zeros((1 + len(y_0), len(X)))
+    answer[:, 0] = (X[0], *y_0.flat)
+
+    for i in range(1, len(X)):
+        Y_P = np.array(list(P[1:, i].flat))
+        Y = Y + grid.h * (F(X[i - 1], Y) + F(X[i], Y_P)) * 0.5
+        answer[:, i] = (X[i], *Y.flat)
+
+    return answer
+
+
 def runge_kutta(eq: DiffEquation, y_0: Vector, grid: Grid) -> Matrix:
     """
     Решение обыкновенного дифференциального уравнения

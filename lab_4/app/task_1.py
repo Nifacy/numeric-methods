@@ -15,7 +15,7 @@ import numpy as np
 
 from common.plot_widget.widget import PlotWidget
 from common.utils import function_from_expr
-from lab_4.lib.ode import euler, runge_kutta, adams
+from lab_4.lib.ode import euler, euler_with_continuations, runge_kutta, adams
 from lab_4.lib.errors import max_absolute_error, runge_romberg_error
 from lab_4.lib.typing import DiffEquation, Grid
 
@@ -24,6 +24,7 @@ from lab_4.lib.typing import DiffEquation, Grid
 class Window(QWidget):
     METHOD_BY_ALIAS = {
         "Эйлера": (euler, 1),
+        "Эйлера (с продолжениями)": (euler_with_continuations, 2),
         "Рунге-Кутта": (runge_kutta, 4),
         "Адамса": (adams, 4),
     }
