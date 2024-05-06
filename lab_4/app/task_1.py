@@ -77,9 +77,14 @@ class Window(QWidget):
         return self._input_layout
     
     def _init_result_layout(self):
+        self._error_layout = QVBoxLayout()
+        self._error_layout.addLayout(self._init_abs_error_layout())
+        self._error_layout.addLayout(self._init_runge_error_layout())
+
         self._result_layout = QVBoxLayout()
         self._result_layout.addLayout(self._init_graph_layout(), 1)
-        self._result_layout.addLayout(self._init_abs_error_layout())
+        self._result_layout.addLayout(self._error_layout)
+
         return self._result_layout
     
     def _init_text_input(self, label: str, default_value: str = ""):
@@ -152,14 +157,12 @@ class Window(QWidget):
     
     def _init_graph_layout(self):
         self._func_graph = PlotWidget(scale=30, auto_update=False)
-        self._error_graph = PlotWidget(scale=30, auto_update=False)
 
         self._graph_layout = QHBoxLayout()
         self._graph_layout.addWidget(self._func_graph)
-        self._graph_layout.addWidget(self._error_graph)
 
         return self._graph_layout
-    
+
     def _init_abs_error_layout(self):
         self._abs_error_prefix = QLabel("Абсолютная погрешность: ")
         self._abs_error_value = QLabel("-")
@@ -169,6 +172,16 @@ class Window(QWidget):
         self._abs_error_layout.addWidget(self._abs_error_value, 1)
 
         return self._abs_error_layout
+
+    def _init_runge_error_layout(self):
+        self._runge_error_prefix = QLabel("Погрешность (метод Рунге-Ромберга): ")
+        self._runge_error_value = QLabel("-")
+
+        self._runge_error_layout = QHBoxLayout()
+        self._runge_error_layout.addWidget(self._runge_error_prefix)
+        self._runge_error_layout.addWidget(self._runge_error_value, 1)
+
+        return self._runge_error_layout
     
     def _run_method(self):
         method_alias = self._method_combo_box.currentText()
@@ -221,29 +234,13 @@ class Window(QWidget):
         self._func_graph.axes.set_title("Сравнение функций", fontweight="bold")
         self._func_graph.draw()
 
-        self._error_graph.axes.clear()
-        self._error_graph.axes.plot(
-            grid_2.range, runge_error,
-            color="orange",
-        )
-        self._error_graph.axes.set_xlim(
-            left=grid.a - 0.1,
-            right=grid.b + 0.1,
-        )
-        self._error_graph.axes.set_ylim(
-            top=np.max(runge_error),
-            bottom=np.min(runge_error),
-        )
-        self._error_graph.axes.grid()
-        self._error_graph.axes.set_title("Погрешность (метод Рунге-Ромберга)", fontweight="bold")
-        self._error_graph.draw()
-
         self._abs_error_value.setText(f"{abs_error:.5f}")
-        
+        self._runge_error_value.setText(f"{runge_error:.5f}")
+
 
 
 app = QtWidgets.QApplication(sys.argv)
 w = Window()
-w.resize(980, 420)
+w.resize(650, 420)
 w.show()
 app.exec_()

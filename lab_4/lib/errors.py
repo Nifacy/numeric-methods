@@ -13,7 +13,7 @@ def max_absolute_error(actual: Vector, predicted: Vector) -> float:
     return np.max(np.abs(actual - predicted))
 
 
-def runge_romberg_error(step_1: Vector, step_2: Vector, p: float) -> Vector:
+def runge_romberg_error(step_1: Vector, step_2: Vector, p: float) -> float:
     """
     Вычисление ошибки численного метода решения ДУ с порядком точности `p`
     методом Рунге-Ромберга.
@@ -27,4 +27,4 @@ def runge_romberg_error(step_1: Vector, step_2: Vector, p: float) -> Vector:
     for i, (a, b) in enumerate(zip(step_2, step_1[::2])):
         answer[i] = (a - b) / (2.0**p - 1.0)
 
-    return np.abs(answer)
+    return np.max(np.abs(answer))
