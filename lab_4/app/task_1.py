@@ -20,7 +20,6 @@ from lab_4.lib.errors import max_absolute_error, runge_romberg_error
 from lab_4.lib.typing import DiffEquation, Grid
 
 
-# TODO: fix bug with reset xlim, ylim
 class Window(QWidget):
     METHOD_BY_ALIAS = {
         "Эйлера": (euler, 1),
@@ -193,7 +192,7 @@ class Window(QWidget):
             self._b_input.value(),
             self._h_input.value(),
         )
-        grid_2 = Grid(grid.a, grid.b, grid.h / 2)
+        grid_2 = Grid(grid.a, grid.b, 2.0 * grid.h)
 
         result = method(eq, y0, grid)
         result_2 = method(eq, y0, grid_2)
@@ -224,7 +223,7 @@ class Window(QWidget):
 
         self._error_graph.axes.clear()
         self._error_graph.axes.plot(
-            grid.range, runge_error,
+            grid_2.range, runge_error,
             color="orange",
         )
         self._error_graph.axes.set_xlim(

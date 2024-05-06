@@ -210,7 +210,7 @@ class Window(QWidget):
             self._b_input.value(),
             self._h_input.value(),
         )
-        grid_2 = Grid(grid.a, grid.b, grid.h / 2)
+        grid_2 = Grid(grid.a, grid.b, 2.0 * grid.h)
 
         result = method(eq, cond_1, cond_2, grid)
         result_2 = method(eq, cond_1, cond_2, grid_2)
@@ -241,7 +241,7 @@ class Window(QWidget):
 
         self._error_graph.axes.clear()
         self._error_graph.axes.plot(
-            grid.range, runge_error,
+            grid_2.range, runge_error,
             color="orange",
         )
         self._error_graph.axes.set_xlim(

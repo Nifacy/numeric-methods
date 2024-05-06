@@ -19,12 +19,12 @@ def runge_romberg_error(step_1: Vector, step_2: Vector, p: float) -> Vector:
     методом Рунге-Ромберга.
 
     `step_1` - решение, полученное численным методом при шаге `h`,
-    а `step_2` - решение, полученное при шаге `h / 2`.
+    а `step_2` - решение, полученное при шаге `2 * h`.
     """
 
-    answer = np.zeros_like(step_1)
+    answer = np.zeros_like(step_2)
 
-    for i, (a, b) in enumerate(zip(step_1, step_2[::2])):
+    for i, (a, b) in enumerate(zip(step_2, step_1[::2])):
         answer[i] = (a - b) / (2.0**p - 1.0)
 
     return np.abs(answer)
