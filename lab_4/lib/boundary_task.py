@@ -2,8 +2,9 @@ import numpy as np
 
 from common.typing import Matrix
 from common.typing import Vector
-from lab_1.task_1 import lu_decompose
-from lab_1.task_1 import solve_system
+from lab_1.task_2 import solve_system
+# from lab_1.task_1 import lu_decompose
+# from lab_1.task_1 import solve_system
 from lab_2.task_1.domain import newton_method
 
 from .ode import OdeSolveMethod
@@ -61,9 +62,9 @@ def shooting_method(
     return underlying_method(eq, Y_0, grid)
 
 
-def _solve(A: Matrix, B: Matrix) -> Matrix:
-    l, u, p = lu_decompose(A)
-    return solve_system(l, u, p, B)
+# def _solve(A: Matrix, B: Matrix) -> Matrix:
+#     l, u, p = lu_decompose(A)
+#     return solve_system(l, u, p, B)
 
 
 def finite_diff_method(eq: DiffEquation, cond_1: BoundaryCondition, cond_2: BoundaryCondition, grid: Grid) -> Matrix:
@@ -74,45 +75,60 @@ def finite_diff_method(eq: DiffEquation, cond_1: BoundaryCondition, cond_2: Boun
     """
 
     X = grid.range
-    N = len(X) - 1
+    N = len(X)
+    answer = np.zeros_like(X)
+
+    p = lambda x: eq.q(x) / eq.p(x)
+    q = lambda x: eq.r(x) / eq.p(x)
+    f = lambda x: - eq.f(x) / eq.p(x)
     h = grid.h
 
-    g_1 = lambda x: 1 - 0.5 * (eq.q(x) / eq.p(x)) * h
-    g_2 = lambda x: (eq.r(x) / eq.p(x)) * h**2 - 2
-    g_3 = lambda x: 1 + 0.5 * (eq.q(x) / eq.p(x)) * h
-    g_4 = lambda x: (eq.f(x) / eq.p(x)) * h**2
+    g_1 = lambda x: 1 - 0.5 * p(x) * h
+    g_2 = lambda x: q(x) * h ** 2 - 2
+    g_3 = lambda x: 1 + 0.5 * p(x) * h
+    g_4 = lambda x: f(x) * h ** 2
+    
+    c1, c2, c3 = cond_1
+    if c1 == 0.0:
+        y_0 = - c3 / c2
+        first = [0.0, g_2(X[1]), g_3(X[1])], g_4(X[1]) - g_1(X[1]) * y_0
+        i = 2
+        answer[0] = y_0
 
-    A = np.zeros((N + 1, N + 1))
-    B = np.zeros((N + 1, 1))
+    elif c2 == 0.0:
+        first = [0.0, -c1, c1], - c3 * h
+        i = 1
 
-    match cond_1:
-        case (0.0, b, c):
-            A[0, 0] = 1.0
-            B[0, 0] = -c / b
+    else:
+        first = [0.0, -c1, c1 + c2 * h], - c3 * h
+        i = 1
 
-        case (a, 0.0, c):
-            A[0, 0:3] = -3 * a, 4 * a, -a
-            B[0, 0] = -c * 2 * h
+    c1, c2, c3 = cond_2
+    if c1 == 0.0:
+        y_n = - c3 / c2
+        last = [g_1(X[-2]), g_2(X[-2]), 0.0], g_4(X[-2]) - g_3(X[-2]) * y_n
+        j = N - 2
+        answer[N - 1] = y_n
 
-        case (a, b, c):
-            A[0, 0:3] = -3 * a + b * 2 * h, 4 * a, -a
-            B[0, 0] = -c * 2 * h
+    elif c2 == 0.0:
+        last = [-c1, c1, 0.0], - c3 * h
+        j = N - 1
 
-    match cond_2:
-        case (0.0, b, c):
-            A[N, -1] = 1.0
-            B[N, 0] = -c / b
+    else:
+        last = [-c1, c1 + c2 * h, 0.0], - c3 * h
+        j = N - 1
 
-        case (a, 0.0, c):
-            A[N, N - 2 : N + 1] = a, -4 * a, 3 * a
-            B[N, 0] = -c * 2 * h
+    A = np.zeros((j - i + 2, 3)) # матрица коэффициентов (n x 3)
+    B = np.zeros((j - i + 2, 1)) # матрица совбодных коэффициентов (n x 1)
+    A[0, :], B[0, 0] = first
+    A[-1, :], B[-1, 0] = last
 
-        case (a, b, c):
-            A[N, N - 2 : N + 1] = a, -4 * a, 3 * a + 2 * b * h
-            B[N, 0] = -c * 2 * h
+    for t in range(i, j):
+        t2 = t - i + 1
+        x = X[t - 1]
+        A[t2, :] = [g_1(x), g_2(x), g_3(x)]
+        B[t2, 0] = g_4(x)
 
-    for i in range(1, N):
-        A[i, i - 1 : i + 2] = g_1(X[i]), g_2(X[i]), g_3(X[i])
-        B[i, 0] = g_4(X[i])
-
-    return np.array([X, _solve(A, B).flat])
+    # решаем систему методом прогонки
+    answer[i - 1:j + 1] = solve_system(A, B)
+    return np.array([X, answer.flat])
