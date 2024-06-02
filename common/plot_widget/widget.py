@@ -24,9 +24,10 @@ class PlotUpdateEvent(NamedTuple):
 class PlotWidget(FigureCanvasQTAgg):
     on_update = pyqtSignal(PlotUpdateEvent)
 
-    def __init__(self, parent=None, scale: float = 10.0):
+    def __init__(self, parent=None, scale: float = 10.0, auto_update=True):
         self._scale = scale
         self._center = QPointF(0.0, 0.0)
+        self._update_size_enable = auto_update
 
         figure = Figure(figsize=(1, 1), dpi=100)
         self.axes = figure.add_subplot(111)
@@ -36,6 +37,9 @@ class PlotWidget(FigureCanvasQTAgg):
         self._update_plot_size()
 
     def _update_plot_size(self):
+        if not self._update_size_enable:
+            return
+
         w, h = self.width(), self.height()
         cx, cy = self._center.x(), self._center.y()
         self.axes.set_xlim((cx - w / 2.0) / self._scale, (cx + w / 2.0) / self._scale)
