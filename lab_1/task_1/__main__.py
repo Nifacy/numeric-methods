@@ -4,16 +4,11 @@ import sys
 
 import numpy as np
 
+from common.matrix_utils import print_matrix
 from common.matrix_utils import read_matrix
 from common.matrix_utils import read_vector
-from common.typing import Matrix
 
 from . import lib
-
-
-def _print_matrix(matrix: Matrix) -> None:
-    f = np.vectorize(lambda x: round(x, 5))
-    print(f(matrix))
 
 
 def _check_determinant(d: float) -> None:
@@ -63,11 +58,11 @@ def _main():
 
     print("LU decompose:")
     print("L:")
-    _print_matrix(l)
+    print_matrix(l)
     print("U:")
-    _print_matrix(u)
+    print_matrix(u)
     print("Permuation matrix:")
-    _print_matrix(p)
+    print_matrix(p)
 
     print()
     print(f"Solution x: {x}")
@@ -77,16 +72,16 @@ def _main():
 
     print()
     print("Inversed matrix A:")
-    _print_matrix(inversed)
+    print_matrix(inversed)
 
     print("\n--- CHECKS ---\n")
     print("L * U:")
-    _print_matrix(np.matmul(l, u))
+    print_matrix(np.matmul(l, u))
     print("P * A:")
-    _print_matrix(np.matmul(p, A))
+    print_matrix(np.matmul(p, A))
     print(f"A * x = {np.matmul(A, x.T).T}")
     print("A * (A ^ (-1)):")
-    _print_matrix(np.matmul(A, inversed))
+    print_matrix(np.matmul(A, inversed))
 
 
 if __name__ == "__main__":
